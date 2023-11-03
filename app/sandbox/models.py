@@ -59,17 +59,16 @@ class Candidate(models.Model):
         default="",
     )
     secondary_keyword = models.CharField(
-        max_length=80, db_index=True, blank=True, default=""
+        max_length=80, db_index=True, blank=True, default="", null=True
     )
     salary_min = models.IntegerField(blank=True, default=0, db_index=True)
     employment = models.CharField(max_length=80, blank=False, default="fulltime remote")
     experience_years = models.FloatField(blank=True, default=0.0)
-    experience_level = models.CharField(max_length=80, blank=True, default="")
     english_level = models.CharField(
         max_length=80, blank=True, default="", choices=EnglishLevel.choices
     )
     skills_cache = models.TextField(blank=True, default="")
-    location = models.CharField(max_length=255, blank=True, default="")
+    location = models.CharField(max_length=255, blank=True, default="", null=True)
     country_code = models.CharField(
         max_length=3,
         blank=True,
@@ -97,7 +96,7 @@ class Candidate(models.Model):
     lang = models.CharField(max_length=10, blank=True, default='EN')
 
     # Meta fields
-    last_updated = models.DateTimeField(blank=True, null=True)
+    last_modified = models.DateTimeField(blank=True, null=True)
     last_seen = models.DateTimeField(blank=True, null=True, db_index=True)
     signup_date = models.DateTimeField(auto_now_add=True)
 
@@ -266,18 +265,15 @@ class MessageThread(models.Model):
 
     candidate_archived = models.BooleanField(blank=True, default=False)
     candidate_favorite = models.BooleanField(blank=True, null=True, db_index=True)
-    notes_candidate = models.TextField(blank=True, default="")
     feedback_candidate = models.CharField(max_length=20, blank=True, default="")
     
     recruiter_favorite = models.BooleanField(blank=True, null=True, db_index=True)
-    notes_recruiter = models.TextField(blank=True, default="")
     feedback_recruiter = models.CharField(max_length=20, blank=True, default="")
     notified_notinterested = models.DateTimeField(blank=True, null=True, db_index=True)
 
     job = models.ForeignKey("JobPosting", on_delete=models.SET_NULL, null=True, blank=True)
     candidate = models.ForeignKey("Candidate", on_delete=models.CASCADE)
     recruiter = models.ForeignKey("Recruiter", on_delete=models.CASCADE)
-    last_message = models.ForeignKey(Message, on_delete=models.CASCADE)
     
     last_updated = models.DateTimeField(blank=False, db_index=True)
     last_seen_recruiter = models.DateTimeField(null=True)
