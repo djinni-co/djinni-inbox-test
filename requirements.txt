@@ -1,6 +1,7 @@
 asgiref==3.7.2
 Django==3.2
 psycopg2==2.9.9
+pycountry==22.3.5
 pytz==2023.3.post1
 sqlparse==0.4.4
 typing_extensions==4.8.0

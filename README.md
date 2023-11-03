@@ -1,4 +1,4 @@
-# Djinni sandbox
+# Djinni Sandbox
 
 Lil Djinni for testing purposes
 
