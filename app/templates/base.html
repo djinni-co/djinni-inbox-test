@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>
+		{% if title %}
+			{{ title }}
+		{% else %}
+			Djinni
+		{% endif %}
+	</title>
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+	<link rel="icon" type="image/png" href="/static/favicon.ico" sizes="32x32" />
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+
+	<style>
+		body {
+			display: flex;
+			flex-direction: column;
+			min-height: 100vh;
+			font-family: 'Inter', sans-serif;
+		}
+
+		footer {
+			margin-top: auto;
+		}
+	</style>
+</head>
+<body>
+	<nav class="navbar navbar-dark bg-dark navbar-expand-lg bg-body-tertiary">
+	  <div class="container">
+	     <a class="navbar-brand" href="/">
+	      <img src="https://djinni.co/static/images/logo_djinni_light.svg" alt="Logo" class="d-inline-block align-text-top">
+	    </a>
+	    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+	      <span class="navbar-toggler-icon"></span>
+	    </button>
+	    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+	      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+	        <li class="nav-item">
+	          <a class="nav-link {% if request.path_info == url('inbox') %}active{% endif %}" href="{{ url('inbox') }}">Inbox</a>
+	        </li>
+	        <li class="nav-item">
+	          <a class="nav-link" href="#">Candidates</a>
+	        </li>
+	        <li class="nav-item">
+	          <a class="nav-link" href="#">Jobs</a>
+	        </li>
+					<li class="nav-item">
+	          <a class="nav-link" href="#">Salaries</a>
+	        </li>
+	      </ul>
+	    </div>
+	  </div>
+	</nav>
+
+	<main class="mb-4">
+		{% block content %}{% endblock content %}
+	</main>
+
+	<footer class="bg-light border-top">
+		<div class="container pt-5 pb-5">
+			<svg width="28px" height="25px" viewBox="0 0 28 25" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+		    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+		    <title>logo</title>
+		    <desc>Created with Sketch.</desc>
+		    <g id="logo" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+		      <g id="logo_text" transform="translate(-286.000000, -11.000000)" fill="#82829a" fill-rule="nonzero">
+		        <path d="M298.83653,17.9393646 L298.837864,17.9393646 L298.837864,31.0149264
+		          L295.405529,31.0149264 L295.111329,29.8871592 L295.013263,29.8871592
+		          C294.588305,30.3121171 294.097976,30.6553472 293.542262,30.9168597
+		          C292.986548,31.1783723 292.447186,31.3091266 291.924161,31.3091266
+		          C290.9108,31.3091266 290.028208,31.047618 289.27636,30.5245929
+		          C288.524511,30.0015678 287.944289,29.2579026 287.535676,28.2935751
+		          C287.127062,27.3292476 286.922759,26.1933195 286.922759,24.8857568
+		          C286.922759,23.5945386 287.159751,22.4626966 287.633742,21.4901968
+		          C288.107734,20.5176971 288.728817,19.7699459 289.49701,19.2469208
+		          C290.265203,18.7238957 291.074245,18.4623871 291.924161,18.4623871
+		          C292.545253,18.4623871 293.072357,18.5645389 293.505487,18.7688455
+		          C293.886359,18.9485023 294.257748,19.2071461 294.619661,19.544783
+		          L294.619661,16.2025816 C294.755343,14.6834725 296.160945,13.923918
+		          298.836468,13.923918 L298.83653,13.923918 L298.83653,17.9393646 Z
+		          M294.620996,26.1694996 L294.619661,26.1694996 L294.619661,22.4819372
+		          C294.178573,22.0904585 293.623312,21.894722 292.953862,21.894722
+		          C292.463526,21.894722 292.054918,22.1317142 291.728028,22.6057057
+		          C291.401137,23.0796972 291.237694,23.8233624 291.237694,24.8367235
+		          C291.237694,25.8991182 291.392965,26.6713858 291.703511,27.1535496
+		          C292.014057,27.6357133 292.463525,27.8767916 293.051928,27.8767916
+		          C293.395164,27.8767916 293.689361,27.8114144 293.934529,27.6806582
+		          C294.179697,27.5499019 294.408517,27.3210819 294.620996,26.9941912
+		          L294.620996,26.1694996 Z M299.279735,35.2784339 L299.281679,35.277668
+		          C301.201253,34.5210954 302.148354,32.9529794 302.122981,30.57332
+		          C302.123041,30.5571775 302.123099,30.540944 302.123099,30.5245929
+		          L302.172133,18.7565872 L306.389001,18.7565872 L306.339968,30.3774928
+		          C306.339968,31.9302235 305.972222,33.1928199 305.236718,34.1653196
+		          C304.501213,35.1378194 303.283564,35.624062 301.583732,35.624062
+		          C300.668439,35.624062 299.900257,35.509652 299.279165,35.2808285
+		          L299.279735,35.2784339 Z M304.362695,16.5614487 C302.999273,16.5614487
+		          301.894002,15.456177 301.894002,14.0927553 C301.894002,12.7293337
+		          302.999273,11.624062 304.362695,11.624062 C305.726117,11.624062
+		          306.831388,12.7293337 306.831388,14.0927553 C306.831388,15.456177
+		          305.726117,16.5614487 304.362695,16.5614487 Z M311.376128,31.0491011
+		          C310.012707,31.0491011 308.907435,29.9438294 308.907435,28.5804077
+		          C308.907435,27.2169861 310.012707,26.1117144 311.376128,26.1117144
+		          C312.73955,26.1117144 313.844822,27.2169861 313.844822,28.5804077
+		          C313.844822,29.9438294 312.73955,31.0491011 311.376128,31.0491011 Z" id="logo"></path>
+		      </g>
+		    </g>
+		  </svg>
+		</div>
+	</footer>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>
