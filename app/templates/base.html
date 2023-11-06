@@ -46,6 +46,10 @@
 	        <li class="nav-item">
 	          <a class="nav-link {% if request.path_info == url('inbox') %}active{% endif %}" href="{{ url('inbox') }}">Inbox</a>
 	        </li>
+            <li class="nav-item">
+              <a class="nav-link {% if request.path_info == url('inbox') %}active{% endif %}"
+                 href="{{ url('job_postings') }}">My Inbox</a>
+             </li>
 	        <li class="nav-item">
 	          <a class="nav-link" href="#">Candidates</a>
 	        </li>

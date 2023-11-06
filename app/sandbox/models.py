@@ -1,12 +1,106 @@
 import enum
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.db.models import Q, Case, When, Value, FloatField, F, ExpressionWrapper, DateTimeField, Subquery, OuterRef
+from django.db.models.functions import Coalesce
+from django.db.models.functions import Abs
+from .utils import Epoch
+from django.utils import timezone
+
 import pycountry
 
 COUNTRY_CHOICES: list[tuple[str, str]] = sorted(
     ((c.alpha_3, c.name) for c in pycountry.countries),
     key=lambda c: c[1],
 )
+
+
+class CustomManager(models.Manager):
+    def get_ordered_by_best_match(self, job: "JobPosting"):
+        english_level_choices = list(EnglishLevel)
+        job_post_eng_idx = english_level_choices.index(job.english_level)
+
+        position_search_vector = SearchVector('candidate__position', weight='D', config='english')
+        position_search_query = SearchQuery(job.position, search_type='phrase')
+
+        secondary_keyword_search_vector = SearchVector('candidate__secondary_keyword', weight='B', config='english')
+        secondary_keyword_search_query = SearchQuery(job.secondary_keyword)
+
+        primary_keyword_search_vector = SearchVector('candidate__primary_keyword', weight='A', config='english') + \
+                                        SearchVector('candidate__skills_cache',  weight='D', config='english')
+
+        primary_keyword_search_query = SearchQuery(job.primary_keyword)
+
+        domain_search_vector = SearchVector('candidate__domain_zones', weight='B', config='english')
+        domain_search_query = SearchQuery(job.domain)
+
+        return self.filter(job=job).annotate(
+            # Let's convert job postings exp years into float, so it would be easier to search best match
+            job_post_exp_converted_to_float=Case(
+                When(job__exp_years=JobPosting.Experience.ZERO, then=Value(0.0)),
+                When(job__exp_years=JobPosting.Experience.ONE, then=Value(1.0)),
+                When(job__exp_years=JobPosting.Experience.TWO, then=Value(2.0)),
+                When(job__exp_years=JobPosting.Experience.THREE, then=Value(3.0)),
+                When(job__exp_years=JobPosting.Experience.FIVE, then=Value(5.0)),
+            ),
+            candidate_english_level_converted_to_int=Case(
+                When(candidate__english_level=EnglishLevel.NONE, then=Value(0)),
+                When(candidate__english_level=EnglishLevel.BASIC, then=Value(1)),
+                When(candidate__english_level=EnglishLevel.PRE, then=Value(2)),
+                When(candidate__english_level=EnglishLevel.INTERMEDIATE, then=Value(3)),
+                When(candidate__english_level=EnglishLevel.UPPER, then=Value(4)),
+                When(candidate__english_level=EnglishLevel.FLUENT, then=Value(5)),
+            ),
+            salary_match=Case(
+                    When(candidate__salary_min__range=(job.salary_min, job.salary_max), then=Value(1.0)),
+                    default=Value(0.0),
+                    output_field=FloatField(),
+            ),
+            english_level_match=Case(
+                When(candidate_english_level_converted_to_int=job_post_eng_idx, then=Value(1.0)),
+                When(candidate_english_level_converted_to_int__gt=job_post_eng_idx, then=Value(1.5)),
+                default=Value(0.0),
+                output_field=FloatField(),
+            ),
+            exp_match=Case(
+                When(candidate__experience_years__gte=F('job_post_exp_converted_to_float'), then=Value(1.0)),
+                default=Value(0.0),
+                output_field=FloatField(),
+            ),
+            location_match=Case(
+                When(candidate__location=job.location, then=Value(0.5)),
+                default=Value(0.0),
+                output_field=FloatField(),
+            ),
+            position_match=SearchRank(position_search_vector, position_search_query),
+            secondary_keyword_match=Coalesce(
+                SearchRank(secondary_keyword_search_vector, secondary_keyword_search_query), Value(0.0)),
+            primary_keyword_match=Coalesce(
+                SearchRank(primary_keyword_search_vector, primary_keyword_search_query), Value(0.0)),
+            domain_match=Coalesce(SearchRank(domain_search_vector, domain_search_query), Value(0.0)),
+
+            score=F("salary_match") + F("english_level_match") + F("exp_match") + F("position_match") +
+                  F('secondary_keyword_match') + F('primary_keyword_match') + F('domain_match') + F('location_match')
+        ).order_by('-score')
+
+    def get_ordered_by_newest_message(self, job: "JobPosting"):
+        current_time = timezone.now()
+
+        subquery = Message.objects.filter(
+            thread=OuterRef('pk'),
+        ).annotate(
+            closest_created_at=Abs(Epoch(ExpressionWrapper(
+                current_time - F('created'),
+                output_field=DateTimeField()
+            )))
+
+        ).order_by('closest_created_at')
+
+        return self.filter(job=job).annotate(
+            closest_message=Subquery(subquery.values('closest_created_at')[:1])
+        ).order_by('closest_message')
+
 
 class LegacyUACity(models.TextChoices):
     """used in jobs/candidate"""
@@ -27,6 +121,7 @@ class LegacyUACity(models.TextChoices):
     CHERNIVTSI = "Чернівці", _("Chernivtsi")
     UZHHOROD = "Ужгород", _("Uzhhorod")
 
+
 class EnglishLevel(models.TextChoices):
     NONE = ("no_english", "No English")
     BASIC = ("basic", "Beginner/Elementary")
@@ -34,6 +129,7 @@ class EnglishLevel(models.TextChoices):
     INTERMEDIATE = ("intermediate", "Intermediate")
     UPPER = ("upper", "Upper-Intermediate")
     FLUENT = ("fluent", "Advanced/Fluent")
+
 
 class Candidate(models.Model):
     USERTYPE = "candidate"
@@ -135,7 +231,7 @@ class JobPosting(models.Model):
         NO_RELOCATE = "no_relocate", _("No relocation")
         CANDIDATE_PAID = "candidate_paid", _("Covered by candidate")
         COMPANY_PAID = "company_paid", _("Covered by company")
-    
+
     class AcceptRegion(models.TextChoices):
         EUROPE = "europe", _("Ukraine + Europe")
         EUROPE_ONLY = "europe_only", _("Only Europe")
@@ -187,6 +283,12 @@ class JobPosting(models.Model):
     published = models.DateTimeField(blank=True, null=True, db_index=True)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
 
+
+
+    def hello(self):
+        pass
+
+
 class Action(str, enum.Enum):
     MESSAGE = ''
 
@@ -209,6 +311,7 @@ class Action(models.TextChoices):
     POKE = "poke"
     SHADOW_POKE = "shadowpoke"
 
+
 class Bucket(str, enum.Enum):
     """Bucket is the current state of the message thread"""
     ARCHIVE = 'archive'
@@ -217,6 +320,7 @@ class Bucket(str, enum.Enum):
     POKES = 'pokes'
     SHORTLIST = 'shortlist'  # TODO: looks deprecated by recruiter_favorite & candidate_favorite
     UNREAD = 'unread'  # TODO: for recruiter we use INBOX bucket with `last_seen_recruiter`
+
 
 class Message(models.Model):
     class Sender(models.TextChoices):
@@ -280,6 +384,9 @@ class MessageThread(models.Model):
     last_seen_candidate = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
 
+    objects = CustomManager()
+
+
     @property
     def last_message(self):
         return self.message_set.last()
@@ -287,3 +394,6 @@ class MessageThread(models.Model):
     class Meta:
         ordering = ("-last_updated",)
         unique_together = (Message.Sender.CANDIDATE, Message.Sender.RECRUITER)
+
+
+
