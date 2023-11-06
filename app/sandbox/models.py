@@ -102,6 +102,8 @@ class CustomManager(models.Manager):
         ).order_by('closest_message')
 
 
+=======
+>>>>>>> main
 class LegacyUACity(models.TextChoices):
     """used in jobs/candidate"""
     KYIV = "Київ", _("Kyiv")
@@ -121,7 +123,6 @@ class LegacyUACity(models.TextChoices):
     CHERNIVTSI = "Чернівці", _("Chernivtsi")
     UZHHOROD = "Ужгород", _("Uzhhorod")
 
-
 class EnglishLevel(models.TextChoices):
     NONE = ("no_english", "No English")
     BASIC = ("basic", "Beginner/Elementary")
@@ -129,7 +130,6 @@ class EnglishLevel(models.TextChoices):
     INTERMEDIATE = ("intermediate", "Intermediate")
     UPPER = ("upper", "Upper-Intermediate")
     FLUENT = ("fluent", "Advanced/Fluent")
-
 
 class Candidate(models.Model):
     USERTYPE = "candidate"
@@ -283,12 +283,6 @@ class JobPosting(models.Model):
     published = models.DateTimeField(blank=True, null=True, db_index=True)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
 
-
-
-    def hello(self):
-        pass
-
-
 class Action(str, enum.Enum):
     MESSAGE = ''
 
@@ -311,7 +305,6 @@ class Action(models.TextChoices):
     POKE = "poke"
     SHADOW_POKE = "shadowpoke"
 
-
 class Bucket(str, enum.Enum):
     """Bucket is the current state of the message thread"""
     ARCHIVE = 'archive'
@@ -320,7 +313,6 @@ class Bucket(str, enum.Enum):
     POKES = 'pokes'
     SHORTLIST = 'shortlist'  # TODO: looks deprecated by recruiter_favorite & candidate_favorite
     UNREAD = 'unread'  # TODO: for recruiter we use INBOX bucket with `last_seen_recruiter`
-
 
 class Message(models.Model):
     class Sender(models.TextChoices):
@@ -386,7 +378,6 @@ class MessageThread(models.Model):
 
     objects = CustomManager()
 
-
     @property
     def last_message(self):
         return self.message_set.last()
@@ -394,6 +385,4 @@ class MessageThread(models.Model):
     class Meta:
         ordering = ("-last_updated",)
         unique_together = (Message.Sender.CANDIDATE, Message.Sender.RECRUITER)
-
-
 

@@ -11,7 +11,6 @@
             <a href="{{ url('job_post_threads', job_post_id) }}?q=best_match">Best Match</a>
         </button>
 
-
 		{% for thread in threads %}
 			{% set last_message = thread.last_message %}
 			{% set candidate = thread.candidate %}

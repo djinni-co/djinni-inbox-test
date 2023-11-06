@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.utils import timezone
 
 from .models import Recruiter, MessageThread, JobPosting, Message
@@ -6,6 +5,10 @@ from django.db.models import F, ExpressionWrapper, DateTimeField, Subquery, Oute
 from django.db.models.functions import Abs
 from .utils import Epoch
 from django.views.decorators.cache import cache_page
+from django.shortcuts import render
+
+
+from .models import Recruiter, MessageThread
 
 # Hardcode for logged in as recruiter
 RECRUITER_ID = 125528
@@ -57,7 +60,7 @@ def job_post_threads(request, pk):
 
 
 def inbox_thread(request, pk):
-    thread = MessageThread.objects.get(id=pk)
+    thread = MessageThread.objects.get(id = pk)
     messages = thread.message_set.all().order_by('created')
 
     _context = {
