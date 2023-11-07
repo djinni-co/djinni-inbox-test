@@ -1,7 +1,7 @@
 from typing import Callable, TypedDict, Sequence, Optional, Union
 
 from .models import Candidate, JobPosting
-from .utils import calculate_similarity
+from .utils import calculate_similarity, compare_numbers
 
 
 MATCHED = 0.65
@@ -13,6 +13,7 @@ class CandidateJobMappingField(TypedDict):
     job: str
     coefficient: float
     converter: Optional[Callable]
+    compare_func: Optional[Callable]
 
 
 def year_normalize(value: Union[int, str, float]) -> int:
@@ -28,46 +29,69 @@ def year_normalize(value: Union[int, str, float]) -> int:
 
 
 def skills_normalizer(value: str) -> str:
-    return " ".join(value.split("\n")).lower()
+    return ",".join(value.split("\n")).lower()
+
+
+def compare_exp(
+        candidate_number: Union[int, float],
+        job_number: Union[int, float],
+        max_difference: float = 5.0
+) -> float:
+
+    if candidate_number > job_number:
+        return 1.0
+
+    return compare_numbers(candidate_number, job_number, max_difference)
+
+
+def compare_salary(
+        candidate_number: Union[int, float],
+        job_number: Union[int, float],
+        max_difference: float = 500.0
+) -> float:
+
+    if job_number > candidate_number:
+        return 1.0
+
+    return compare_numbers(candidate_number, job_number, max_difference)
 
 
 COEFFICIENTS_VERSION_1 = (
     CandidateJobMappingField(
         candidate='position', job='position', coefficient=1.2,
-        converter=str.lower
+        converter=str.lower, compare_func=calculate_similarity
     ),
     CandidateJobMappingField(
         candidate='primary_keyword', job='primary_keyword', coefficient=1.3,
-        converter=str.lower
+        converter=str.lower, compare_func=calculate_similarity
     ),
     CandidateJobMappingField(
         candidate='secondary_keyword', job='secondary_keyword',
-        coefficient=1,
-        converter=str.lower
+        coefficient=1, converter=str.lower, compare_func=calculate_similarity
     ),
     CandidateJobMappingField(
         candidate='salary_min', job='salary_max', coefficient=1,
-        converter=lambda x: x
+        converter=lambda x: x, compare_func=compare_salary
     ),
     CandidateJobMappingField(
         candidate='employment', job='employment', coefficient=0.5,
-        converter=str.lower
+        converter=str.lower, compare_func=calculate_similarity
     ),
     CandidateJobMappingField(
         candidate='experience_years', job='exp_years', coefficient=1.5,
-        converter=year_normalize
+        converter=year_normalize, compare_func=compare_exp
     ),
     CandidateJobMappingField(
         candidate='english_level', job='english_level', coefficient=1,
-        converter=str.lower
+        converter=str.lower, compare_func=calculate_similarity
     ),
     CandidateJobMappingField(
         candidate='skills_cache', job='extra_keywords', coefficient=1,
-        converter=skills_normalizer
+        converter=skills_normalizer, compare_func=calculate_similarity
     ),
     CandidateJobMappingField(
         candidate='skills_cache', job='primary_keyword', coefficient=0.5,
-        converter=skills_normalizer
+        converter=skills_normalizer, compare_func=calculate_similarity
     )
 )
 
@@ -75,40 +99,39 @@ COEFFICIENTS_VERSION_1 = (
 COEFFICIENTS_VERSION_2 = (
     CandidateJobMappingField(
         candidate='position', job='position', coefficient=1.5,
-        converter=str.lower
+        converter=str.lower, compare_func=calculate_similarity
     ),
     CandidateJobMappingField(
         candidate='primary_keyword', job='primary_keyword', coefficient=1.5,
-        converter=str.lower
+        converter=str.lower, compare_func=calculate_similarity
     ),
     CandidateJobMappingField(
         candidate='secondary_keyword', job='secondary_keyword',
-        coefficient=1.3,
-        converter=str.lower
+        coefficient=1, converter=str.lower, compare_func=calculate_similarity
     ),
     CandidateJobMappingField(
-        candidate='salary_min', job='salary_max', coefficient=1.5,
-        converter=lambda x: x
+        candidate='salary_min', job='salary_max', coefficient=1,
+        converter=lambda x: x, compare_func=compare_salary
     ),
     CandidateJobMappingField(
-        candidate='employment', job='employment', coefficient=1,
-        converter=str.lower
+        candidate='employment', job='employment', coefficient=0.5,
+        converter=str.lower, compare_func=calculate_similarity
     ),
     CandidateJobMappingField(
-        candidate='experience_years', job='exp_years', coefficient=2,
-        converter=year_normalize
+        candidate='experience_years', job='exp_years', coefficient=1.5,
+        converter=year_normalize, compare_func=compare_exp
     ),
     CandidateJobMappingField(
-        candidate='english_level', job='english_level', coefficient=2,
-        converter=str.lower
+        candidate='english_level', job='english_level', coefficient=1.2,
+        converter=str.lower, compare_func=calculate_similarity
     ),
     CandidateJobMappingField(
-        candidate='skills_cache', job='extra_keywords', coefficient=0.5,
-        converter=skills_normalizer
+        candidate='skills_cache', job='extra_keywords', coefficient=1,
+        converter=skills_normalizer, compare_func=calculate_similarity
     ),
     CandidateJobMappingField(
         candidate='skills_cache', job='primary_keyword', coefficient=0.3,
-        converter=skills_normalizer
+        converter=skills_normalizer, compare_func=calculate_similarity
     )
 )
 
@@ -135,9 +158,10 @@ def find_similarities(
 
         weight: float = field_obj.get("coefficient")
         converter: Callable = field_obj.get("converter", lambda x: x)
+        compare_func: Callable = field_obj.get("compare_func", lambda x: x)
 
         field_similarity: float = (
-                calculate_similarity(
+                compare_func(
                     converter(candidate_value), converter(job_value)
                 ) * weight
         )
