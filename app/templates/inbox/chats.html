@@ -4,58 +4,61 @@
 	<div class="container pt-3">
 		<h1 class="mb-3">Inbox</h1>
 
-        <div class="mb-3">
-            <div class="dropdown" style="float: left">
-                <button class="btn btn-sm btn-secondary dropdown-toggle"
-                    type="button" id="filter-by-job" data-bs-toggle="dropdown"
-                    aria-expanded="false">
+        <table class="mb-3 table">
+            <colgroup>
+                <col span="1" style="min-width: 15em">
+                <col span="1" style="width: 100%">
+                <col span="1" style="width: min-content">
+            </colgroup>
 
-                    Show Only Jobs: {{ current_job or 'All' }}
-                </button>
-                <ul class="dropdown-menu"
-                    hx-get="{{ url('sb:inbox') }}"
-                    style="height: 20rem; overflow: auto"
-                    aria-labelledby="filter-by-job">
-                    {% for j in jobs %}
-                        <li><button class="dropdown-item" type="submit">
-                            {{ '#%s: %s' % (j.id, j.position) }}
-                        </button></li>
-                    {% endfor %}
-                </ul>
-            </div>
+            <tbody>
+                <tr>
+                    <td>
+                        <form href="#" method="get">
+                            <select name="job-filter" class="form-select form-select-sm"
+                                style="max-width: 20rem">
 
-            <input type="search" placeholder="Search in Messages (NIY)"
-                style="margin-left: 10px">
+                                <option value="-1" checked>All</option>
 
-            <button class="btn btn-sm btn-outline-secondary" style="float: right">
-                Open Advanced Scoring Tool
-            </button>
+                                {% for j in jobs %}
+                                    <option value="{{ j.id }}">
+                                        {{ '#%s: %s' % (j.id, j.position) }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </td>
 
-            <script>
-            el = document.currentScript.previousElementSibling;
-            $(el).on('click', function (ev) {
-                el.classList.toggle('active');
-                $('#adv-scoring-tool').toggle('hidden');
-            });
-            </script>
+                    <td>
+                        <input type="search" placeholder="Search in Messages (NIY)"
+                            style="width: 100%">
+                    </td>
 
-            <!-- <div class="dropdown" style="float: right">
-            <button class="btn btn-sm btn-secondary dropdown-toggle"
-            type="button" id="sort-choice" data-bs-toggle="dropdown"
-            aria-expanded="false">
+                    <td>
+                        <form action="" method="get" style="display: inline">
+                            <select name="{{ const.http.param.SORTING }}"
+                                class="form-select form-select-sm"
+                                style="float: right; width: min-content">
 
-            Sorting: {{ current_sorting }}
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-            <li><a class="dropdown-item" href="#">Most Recent Answer</a></li>
-            <li><a class="dropdown-item" href="#">Salary Low-High</a></li>
-            <li><a class="dropdown-item" href="#">Salary High-Low</a></li>
-            <li><a class="dropdown-item" href="#">Experience Low-High</a></li>
-            <li><a class="dropdown-item" href="#">Experience High-Low</a></li>
-            <li><a class="dropdown-item" href="#">Advanced Sorting</a></li>
-            </ul>
-            </div> -->
-        </div>
+                                {% for so in sorting_options %}
+                                    <option value="{{ so.id }}">{{ so.text }}</option>
+                                {% endfor %}
+
+                                <script>
+                                /* the last item MUST be "Advanced Sorting" and it has special meaning */
+                                el = document.currentScript.previousElementSibling;
+                                $(el).on('click', function (ev) {
+                                    ev.preventDefault();
+                                    ev.target.classList.toggle('active');
+                                    $('#adv-scoring-tool').toggle('hidden');
+                                });
+                                </script>
+                            </select>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
         <div class="mb-3" style="display: block" id="adv-scoring-tool">
             {% include 'inbox/mixin/advanced-scoring-tool.jinja' %}
