@@ -99,7 +99,7 @@ class Candidate(models.Model):
     last_modified = models.DateTimeField(blank=True, null=True)
     last_seen = models.DateTimeField(blank=True, null=True, db_index=True)
     signup_date = models.DateTimeField(auto_now_add=True)
-
+    score = 0
 
 class Recruiter(models.Model):
     USERTYPE = "recruiter"
@@ -118,6 +118,7 @@ class Recruiter(models.Model):
 
 
 class JobPosting(models.Model):
+    USERTYPE = "jobPosting"
     class Experience(models.TextChoices):
         ZERO = "no_exp", _("No experience")
         ONE = "1y", _("1 year")
