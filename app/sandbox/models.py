@@ -8,6 +8,7 @@ COUNTRY_CHOICES: list[tuple[str, str]] = sorted(
     key=lambda c: c[1],
 )
 
+
 class LegacyUACity(models.TextChoices):
     """used in jobs/candidate"""
     KYIV = "Київ", _("Kyiv")
@@ -27,6 +28,7 @@ class LegacyUACity(models.TextChoices):
     CHERNIVTSI = "Чернівці", _("Chernivtsi")
     UZHHOROD = "Ужгород", _("Uzhhorod")
 
+
 class EnglishLevel(models.TextChoices):
     NONE = ("no_english", "No English")
     BASIC = ("basic", "Beginner/Elementary")
@@ -34,6 +36,7 @@ class EnglishLevel(models.TextChoices):
     INTERMEDIATE = ("intermediate", "Intermediate")
     UPPER = ("upper", "Upper-Intermediate")
     FLUENT = ("fluent", "Advanced/Fluent")
+
 
 class Candidate(models.Model):
     USERTYPE = "candidate"
@@ -135,7 +138,7 @@ class JobPosting(models.Model):
         NO_RELOCATE = "no_relocate", _("No relocation")
         CANDIDATE_PAID = "candidate_paid", _("Covered by candidate")
         COMPANY_PAID = "company_paid", _("Covered by company")
-    
+
     class AcceptRegion(models.TextChoices):
         EUROPE = "europe", _("Ukraine + Europe")
         EUROPE_ONLY = "europe_only", _("Only Europe")
@@ -187,6 +190,7 @@ class JobPosting(models.Model):
     published = models.DateTimeField(blank=True, null=True, db_index=True)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
 
+
 class Action(str, enum.Enum):
     MESSAGE = ''
 
@@ -209,6 +213,7 @@ class Action(models.TextChoices):
     POKE = "poke"
     SHADOW_POKE = "shadowpoke"
 
+
 class Bucket(str, enum.Enum):
     """Bucket is the current state of the message thread"""
     ARCHIVE = 'archive'
@@ -217,6 +222,7 @@ class Bucket(str, enum.Enum):
     POKES = 'pokes'
     SHORTLIST = 'shortlist'  # TODO: looks deprecated by recruiter_favorite & candidate_favorite
     UNREAD = 'unread'  # TODO: for recruiter we use INBOX bucket with `last_seen_recruiter`
+
 
 class Message(models.Model):
     class Sender(models.TextChoices):

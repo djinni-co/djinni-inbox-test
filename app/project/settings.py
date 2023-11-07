@@ -17,7 +17,6 @@ import pathlib
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
@@ -29,7 +28,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '[::1]']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -39,8 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-	'sandbox.apps.SandboxConfig',
-	"django_jinja",
+    'sandbox.apps.SandboxConfig',
+    "django_jinja",
 ]
 
 MIDDLEWARE = [
@@ -74,13 +72,12 @@ TEMPLATES = [
         'APP_DIRS': True,
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'OPTIONS': {
-            "match_extension": (".html"),
+            "match_extension": ".html",
         },
     },
 ]
 
 WSGI_APPLICATION = 'project.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -91,11 +88,10 @@ DATABASES = {
         'NAME': os.getenv('POSTGRES_DB'),
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': 'db',  # Use the service name from docker-compose.yml
+        'HOST': os.getenv('POSTGRES_HOST'),  # Use the service name from docker-compose.yml
         'PORT': '5432',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -115,7 +111,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
@@ -128,7 +123,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
