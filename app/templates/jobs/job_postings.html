@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container pt-5 pb-5">
+    {% for job_post in job_postings %}
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <a href="{{ url('job_post_threads', job_post.id) }}"><small>{{job_post.position }}</small></a>
+                    </div>
+                    <div class="card-body">
+                        <div>
+                            <h4>Candidates: {{job_post.messagethread_set.all().count()}}</h4>
+                            <h6> Last modified at: {{job_post.last_modified|date('d.m.Y H:i') }}</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock content %}

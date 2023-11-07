@@ -5,10 +5,18 @@
 		<h1 class="mb-3">Inbox : {{threads.count()}}</h1>
         <label for="sort-select">Sort by:</label>
         <button class="button-link">
+            {% if all_msgs %}
+            <a href="{{ url('inbox') }}?q=default">Default</a>
+            {% else %}
             <a href="{{ url('job_post_threads', job_post_id) }}?q=default">Default</a>
+            {% endif %}
         </button>
         <button class="button-link">
-            <a href="{{ url('job_post_threads', job_post_id) }}?q=best_match">Best Match</a>
+            {% if all_msgs %}
+            <a href="{{ url('inbox') }}?q=best_match">Best match</a>
+            {% else %}
+            <a href="{{ url('job_post_threads', job_post_id) }}?q=best_match">Best match</a>
+            {% endif %}
         </button>
 
 		{% for thread in threads %}

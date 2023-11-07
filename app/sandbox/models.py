@@ -35,7 +35,7 @@ class CustomManager(models.Manager):
         domain_search_vector = SearchVector('candidate__domain_zones', weight='B', config='english')
         domain_search_query = SearchQuery(job.domain)
 
-        return self.filter(job=job).annotate(
+        return self.filter(job=job).select_related('candidate', 'job').annotate(
             # Let's convert job postings exp years into float, so it would be easier to search best match
             job_post_exp_converted_to_float=Case(
                 When(job__exp_years=JobPosting.Experience.ZERO, then=Value(0.0)),
@@ -64,7 +64,8 @@ class CustomManager(models.Manager):
                 output_field=FloatField(),
             ),
             exp_match=Case(
-                When(candidate__experience_years__gte=F('job_post_exp_converted_to_float'), then=Value(1.0)),
+                When(candidate__experience_years=F('job_post_exp_converted_to_float'), then=Value(1.0)),
+                When(candidate__experience_years__gt=F('job_post_exp_converted_to_float'), then=Value(1.5)),
                 default=Value(0.0),
                 output_field=FloatField(),
             ),
@@ -102,8 +103,6 @@ class CustomManager(models.Manager):
         ).order_by('closest_message')
 
 
-=======
->>>>>>> main
 class LegacyUACity(models.TextChoices):
     """used in jobs/candidate"""
     KYIV = "Київ", _("Kyiv")
