@@ -7,6 +7,7 @@
 		{% for thread in threads %}
 			{% set last_message = thread.last_message %}
 			{% set candidate = thread.candidate %}
+            {% set score_dict = thread.score_description %}
 
 			<div id="thread-{{ thread.id }}" class="card mb-4">
 				<div class="card-body">
@@ -25,15 +26,31 @@
 										{% if thread.is_anonymous %}
 											<div>{{ candidate.position }}</div>
 										{% else %}
-											<div>{{ candidate.name }}</div>
+											<div>{{ candidate.name }} {{thread.score}}</div>
 										{% endif %}
 										<div class="text-secondary">
 											<div>
-												${{ candidate.salary_min }}, {{ candidate.experience_years }} years of experience,
+                                                <span class="badge {% if score_dict.salary_score > 0.8 %}bg-success{% elif score_dict.salary_score > 0.5 %}bg-warning text-dark{% else %}bg-danger{% endif %}"> ${{candidate.salary_min}} </span>
+                                                <span class="badge {% if score_dict.experience_score > 0.9 %}bg-success{% elif score_dict.experience_score > 0.8 %}bg-warning text-dark{% else %}bg-danger{% endif %}"> {{ candidate.experience_years }} years of experience </span>
 											</div>
 											<div>
-												{{ candidate.english_level }}, {{ candidate.country_code }}{% if candidate.location %}, {{ candidate.location }}{% endif %}
+                                                <span class="badge {% if score_dict.english_score > 0.8 %}bg-success{% elif score_dict.english_score > 0.5 %}bg-warning text-dark{% else %}bg-danger{% endif %}"> {{candidate.english_level}} </span>
+                                                <span class="badge {% if score_dict.location_score > 0.5 %}bg-success{% elif score_dict.location_score > 0.1 %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{candidate.country_code}} {% if candidate.location %}, {{ candidate.location }}{% endif %}</span>
 											</div>
+                                            <div>
+                                                {% if score_dict.primary_keyword_score %}
+                                                <span class="badge {% if score_dict.primary_keyword_score > 0.8 %}bg-success{% elif score_dict.primary_keyword_score >= 0.5 %}bg-warning text-dark{% else %}bg-danger{% endif %}"> {{candidate.primary_keyword}} </span>
+                                                {% endif %}
+                                                {% if score_dict.secondary_keyword_score %}
+                                                <span class="badge {% if score_dict.secondary_keyword_score > 0.8 %}bg-success{% elif score_dict.secondary_keyword_score >= 0.5 %}bg-warning text-dark{% else %}bg-danger{% endif %}"> {{candidate.secondary_keyword}} </span>
+                                                {% endif %}
+                                                {% if score_dict.skills_score and score_dict.skills_score >= 0.4%}
+                                                <span class="badge {% if score_dict.skills_score > 0.8 %}bg-success{% elif score_dict.english_score >= 0.4 %}bg-warning text-dark{% endif %}"> Skills </span>
+                                                {% endif %}
+                                                {% if score_dict.domain_zone_score is not none %}
+                                                <span class="badge {% if score_dict.domain_zone_score > 0.5 %}bg-success{% elif score_dict.domain_zone_score >= 0.0 %}bg-warning text-dark{% endif %}"> Domain </span>
+                                                {% endif %}
+                                            </div>
 										</div>
 									</small>
 								</div>

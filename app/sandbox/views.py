@@ -8,7 +8,15 @@ RECRUITER_ID = 125528
 
 def inbox(request):
     recruiter = Recruiter.objects.get(id=RECRUITER_ID)
-    threads = MessageThread.objects.filter(recruiter=recruiter).select_related('candidate', 'job')[:50]
+    threads = MessageThread.objects.filter(
+        recruiter=recruiter
+    ).select_related(
+        'candidate',
+        'job'
+    ).order_by(
+        '-score',
+        '-id'
+    )
 
     _context = {'title': "Djinni - Inbox", 'recruiter': recruiter, 'threads': threads}
 

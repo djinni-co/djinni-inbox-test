@@ -21,14 +21,14 @@ class ScoringWeights:
 
 @dataclasses.dataclass
 class CalculatedScore:
-    raw_score: float
+    raw_score: Optional[float]
     weighted_score: float
 
 
 @dataclasses.dataclass
 class TotalScore:
     total_score: float
-    score_description: Dict[str, float]
+    score_description: Dict[str, Optional[float]]
 
 
 class ThreadScoringService:
@@ -61,8 +61,11 @@ class ThreadScoringService:
         return CalculatedScore(raw_score=score, weighted_score=score * self.weights.english_level)
 
     def calculate_location_score(self) -> CalculatedScore:
-        if (self.candidate.country_code == 'UKR' and
-            self.job.accept_region in [JobPosting.AcceptRegion.UKRAINE, JobPosting.AcceptRegion.EUROPE]):
+        if not self.job.accept_region:
+            # worldwide
+            score = 1.0
+        elif (self.candidate.country_code == 'UKR' and
+              self.job.accept_region in [JobPosting.AcceptRegion.UKRAINE, JobPosting.AcceptRegion.EUROPE]):
             score = 1.0
         elif (self.job.accept_region == JobPosting.AcceptRegion.EUROPE_ONLY and
               self.candidate.country_code in settings.EUROPEAN_COUNTRIES):
@@ -94,14 +97,14 @@ class ThreadScoringService:
         else:
             # If candidate's experience is less than required, the score is reduced proportionally.
             # You can adjust the coefficient based on how strict you want to be about experience.
-            coefficient = 0.1  # A smaller coefficient means less penalty for experience gap.
+            coefficient = 0.2  # A smaller coefficient means less penalty for experience gap.
             experience_gap = max(0, required_experience - candidate_experience)
             score = max(0, 1 - coefficient * experience_gap)
         return CalculatedScore(raw_score=score, weighted_score=score * self.weights.experience_years)
 
     def calculate_domain_zone_score(self) -> CalculatedScore:
         if not self.candidate.domain_zones:
-            return CalculatedScore(raw_score=0, weighted_score=0)
+            return CalculatedScore(raw_score=None, weighted_score=0)
         domain_zones = self.candidate.domain_zones.split(', ')
         domain_zones = [zone.lower() for zone in domain_zones]
         score = 0.0
@@ -115,7 +118,7 @@ class ThreadScoringService:
         return: must return float <0 if a candidate is not interested in the company type
         """
         if not self.candidate.uninterested_company_types:
-            return CalculatedScore(raw_score=0, weighted_score=0)
+            return CalculatedScore(raw_score=None, weighted_score=0)
         uninterested_types = self.candidate.uninterested_company_types.split(', ')
         penalty = 0.0
         if self.job.company_type in uninterested_types:
@@ -124,6 +127,8 @@ class ThreadScoringService:
 
     def calculate_primary_keyword_score(self) -> CalculatedScore:
         # Assuming exact match for simplicity
+        if not self.candidate.primary_keyword:
+            return CalculatedScore(raw_score=None, weighted_score=0)
         score = 0.0
         if self.candidate.primary_keyword.lower() == self.job.primary_keyword.lower():
             score = 1.0
@@ -131,6 +136,8 @@ class ThreadScoringService:
 
     def calculate_secondary_keyword_score(self) -> CalculatedScore:
         # Assuming exact match for simplicity
+        if not self.candidate.secondary_keyword:
+            return CalculatedScore(raw_score=None, weighted_score=0)
         score = 0.0
         if self.candidate.secondary_keyword and self.job.secondary_keyword:
             if self.candidate.secondary_keyword.lower() == self.job.secondary_keyword.lower():
@@ -175,7 +182,7 @@ class ThreadScoringService:
         If the description says "We don't need Java", this algorithm will still match "Java" as a skill.
         """
         if not self.candidate.skills_cache:
-            return CalculatedScore(raw_score=0, weighted_score=0)
+            return CalculatedScore(raw_score=None, weighted_score=0)
         job_description_tokens = set(self.job.long_description.lower().split())
         candidate_skills_tokens = set(self.candidate.skills_cache.lower().split("\n"))
         matching_skills = job_description_tokens.intersection(candidate_skills_tokens)
