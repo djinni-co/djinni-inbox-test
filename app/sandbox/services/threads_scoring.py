@@ -25,6 +25,12 @@ class CalculatedScore:
     weighted_score: float
 
 
+@dataclasses.dataclass
+class TotalScore:
+    total_score: float
+    score_description: Dict[str, float]
+
+
 class ThreadScoringService:
 
     def __init__(self, candidate: Candidate, job: JobPosting, weights: Optional[ScoringWeights] = None):
@@ -94,6 +100,8 @@ class ThreadScoringService:
         return CalculatedScore(raw_score=score, weighted_score=score * self.weights.experience_years)
 
     def calculate_domain_zone_score(self) -> CalculatedScore:
+        if not self.candidate.domain_zones:
+            return CalculatedScore(raw_score=0, weighted_score=0)
         domain_zones = self.candidate.domain_zones.split(', ')
         domain_zones = [zone.lower() for zone in domain_zones]
         score = 0.0
@@ -106,6 +114,8 @@ class ThreadScoringService:
         Assuming uninterested_company_types is a comma-separated string
         return: must return float <0 if a candidate is not interested in the company type
         """
+        if not self.candidate.uninterested_company_types:
+            return CalculatedScore(raw_score=0, weighted_score=0)
         uninterested_types = self.candidate.uninterested_company_types.split(', ')
         penalty = 0.0
         if self.job.company_type in uninterested_types:
@@ -164,23 +174,45 @@ class ThreadScoringService:
         In general, it's a bad idea to use a simple matching algorithm like this.
         If the description says "We don't need Java", this algorithm will still match "Java" as a skill.
         """
+        if not self.candidate.skills_cache:
+            return CalculatedScore(raw_score=0, weighted_score=0)
         job_description_tokens = set(self.job.long_description.lower().split())
         candidate_skills_tokens = set(self.candidate.skills_cache.lower().split("\n"))
         matching_skills = job_description_tokens.intersection(candidate_skills_tokens)
         score = len(matching_skills) * 0.3
         return CalculatedScore(raw_score=score, weighted_score=score * self.weights.skills)
 
-    def calculate_candidate_score(self) -> float:
-        total_score = 0.0
-        total_score += self.calculate_english_level_score().weighted_score
-        total_score += self.calculate_location_score().weighted_score
-        total_score += self.calculate_experience_score().weighted_score
-        total_score += self.calculate_primary_keyword_score().weighted_score
-        total_score += self.calculate_secondary_keyword_score().weighted_score
-        total_score += self.calculate_domain_zone_score().weighted_score
-        total_score += self.calculate_company_type_penalty().weighted_score
-        total_score += self.calculate_salary_score().weighted_score
-        total_score += self.calculate_skills_score().weighted_score
-        return total_score
+    def calculate_candidate_score(self) -> TotalScore:
+        english_score = self.calculate_english_level_score()
+        location_score = self.calculate_location_score()
+        experience_score = self.calculate_experience_score()
+        primary_keyword_score = self.calculate_primary_keyword_score()
+        secondary_keyword_score = self.calculate_secondary_keyword_score()
+        domain_zone_score = self.calculate_domain_zone_score()
+        company_type_penalty = self.calculate_company_type_penalty()
+        salary_score = self.calculate_salary_score()
+        skills_score = self.calculate_skills_score()
 
-
+        weighted_score = (
+            english_score.weighted_score +
+            location_score.weighted_score +
+            experience_score.weighted_score +
+            primary_keyword_score.weighted_score +
+            secondary_keyword_score.weighted_score +
+            domain_zone_score.weighted_score +
+            company_type_penalty.weighted_score +
+            salary_score.weighted_score +
+            skills_score.weighted_score
+        )
+        score_description = {
+            'english_score': english_score.raw_score,
+            'location_score': location_score.raw_score,
+            'experience_score': experience_score.raw_score,
+            'primary_keyword_score': primary_keyword_score.raw_score,
+            'secondary_keyword_score': secondary_keyword_score.raw_score,
+            'domain_zone_score': domain_zone_score.raw_score,
+            'company_type_penalty': company_type_penalty.raw_score,
+            'salary_score': salary_score.raw_score,
+            'skills_score': skills_score.raw_score,
+        }
+        return TotalScore(total_score=weighted_score, score_description=score_description)
