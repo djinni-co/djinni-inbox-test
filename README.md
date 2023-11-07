@@ -58,7 +58,7 @@ source venv/bin/activate
 ```bash
 # Env variables
 # Copy example file, change values if needed
-cp .env.example .env
+cp .env .env
 ```
 
 2. Build and run the docker container

@@ -280,6 +280,8 @@ class MessageThread(models.Model):
     last_seen_candidate = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
 
+    candidate_matching = models.FloatField(blank=True, null=True, default=0.0)
+
     @property
     def last_message(self):
         return self.message_set.last()

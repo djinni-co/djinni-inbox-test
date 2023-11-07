@@ -7,8 +7,9 @@
 		{% for thread in threads %}
 			{% set last_message = thread.last_message %}
 			{% set candidate = thread.candidate %}
+            {% set score = thread.candidate_matching %}
 
-			<div id="thread-{{ thread.id }}" class="card mb-4">
+			<div id="thread-{{ thread.id }}" class="card mb-4 {% if score >= matched %}border-success{% elif score >= partial_matched %}border-warning{% else %}border-danger{% endif %}">
 				<div class="card-body">
 					<div class="row">
 						<div class="col-sm-3">
@@ -52,11 +53,24 @@
 							</div>
 							<a href="{{ url('inbox_thread', thread.id) }}"><small>Open thread</small></a>
 						</div>
-						<div class="col-sm-auto">
-							<small class="text-secondary">
-								{{ last_message.created|date('d.m.Y') }}
-							</small>
-						</div>
+                        <div class="col-sm-auto d-flex flex-column">
+                            <div class="row g-2 mb-auto">
+                                <small class="text-secondary">
+                                    {{ last_message.created|date('d.m.Y') }}
+                                </small>
+                            </div>
+                            <div class="row g-2 mt-auto">
+                                <small class="{% if score >= matched %}text-success{% elif score >= partial_matched %}text-warning{% else %}text-danger{% endif %}" style="opacity: 0.5">
+                                    {% if score >= matched %}
+                                        <p class="fw-light small opacity-25">MATCHED</p>
+                                    {% elif score >= partial_matched %}
+                                        <p class="fw-light small opacity-25">PARTLY MATCHED</p>
+                                    {% else %}
+                                        <p class="fw-light small opacity-25">NOT MATCHED</p>
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
 					</div>
 				</div>
 			</div>

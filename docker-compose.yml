@@ -5,14 +5,19 @@ services:
     ports:
       - "8000:${PORT:-8000}"
     volumes:
-      - .:/app
-    command: python app/manage.py runserver 0.0.0.0:8000
+      - ./app:/app
+    command: >
+      sh -c "python -m spacy download en_core_web_sm &&
+             python manage.py migrate &&
+             python manage.py calculate_similarity_scores &&
+             python manage.py runserver 0.0.0.0:8000"
     environment:
       - DEBUG=True
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+    restart: on-failure
 
   db:
     image: postgres:latest
@@ -21,4 +26,4 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
-      - 5432:5432
+      - "5432:5432"
