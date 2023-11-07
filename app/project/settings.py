@@ -141,3 +141,12 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Kyiv'
+
+EUROPEAN_COUNTRIES = {
+    'ALB', 'AND', 'ARM', 'AUT', 'AZE', 'BLR', 'BEL', 'BIH', 'BGR', 'HRV',
+    'CYP', 'CZE', 'DNK', 'EST', 'FRO', 'FIN', 'FRA', 'GEO', 'DEU', 'GRC',
+    'HUN', 'ISL', 'IRL', 'IMN', 'ITA', 'KAZ', 'XKX', 'LVA', 'LIE', 'LTU',
+    'LUX', 'MLT', 'MDA', 'MCO', 'MNE', 'NLD', 'MKD', 'NOR', 'POL', 'PRT',
+    'ROU', 'RUS', 'SMR', 'SRB', 'SVK', 'SVN', 'ESP', 'SWE', 'CHE', 'TUR',
+    'UKR', 'GBR', 'VAT'
+}
