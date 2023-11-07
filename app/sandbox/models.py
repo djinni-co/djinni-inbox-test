@@ -285,6 +285,8 @@ class MessageThread(models.Model):
     last_seen_recruiter = models.DateTimeField(null=True)
     last_seen_candidate = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
+    score = models.FloatField(blank=True, default=0.0, db_index=True)
+    score_description = models.JSONField(blank=True, default=dict)
 
     @property
     def last_message(self):
