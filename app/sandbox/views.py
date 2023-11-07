@@ -3,7 +3,6 @@ from django.shortcuts import render
 from .analyzator import Analyzator
 
 from .models import Recruiter, MessageThread
-from django.db.models.query import QuerySet
 
 # Hardcode for logged in as recruiter
 RECRUITER_ID = 125528
