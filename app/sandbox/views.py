@@ -1,3 +1,5 @@
+import os
+
 from django.shortcuts import render
 
 from .analyzator import Analyzator
@@ -6,14 +8,23 @@ from .models import Recruiter, MessageThread
 
 # Hardcode for logged in as recruiter
 RECRUITER_ID = 125528
-analyzator = Analyzator()
 
+faiss_index_path = "faissIndexIDMap3.index"
+analyzator = Analyzator()
 
 def inbox(request):
     recruiter = Recruiter.objects.get(id = RECRUITER_ID)
     threads = MessageThread.objects.filter(recruiter = recruiter).select_related('candidate', 'job')
 
     threads = sorted(threads, key=lambda x: analyzator.calc_priority(x), reverse=False)
+
+    # Only during first run and creates faiss index
+    if os.path.exists(faiss_index_path) is False:
+        analyzator.create_faiss_index(threads, faiss_index_path)
+
+    analyzator.read_faiss_index(faiss_index_path)
+    # D, I = analyzator.faiss_search(threads[0].job.long_description)
+    # print(I)
 
     _context = { 'title': "Djinni - Inbox", 'recruiter': recruiter, 'threads': threads }
 
