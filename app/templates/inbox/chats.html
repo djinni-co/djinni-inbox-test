@@ -4,62 +4,70 @@
 	<div class="container pt-3">
 		<h1 class="mb-3">Inbox</h1>
 
-		{% for thread in threads %}
-			{% set last_message = thread.last_message %}
-			{% set candidate = thread.candidate %}
+        <div class="mb-3">
+            <div class="dropdown" style="float: left">
+                <button class="btn btn-sm btn-secondary dropdown-toggle"
+                    type="button" id="filter-by-job" data-bs-toggle="dropdown"
+                    aria-expanded="false">
 
-			<div id="thread-{{ thread.id }}" class="card mb-4">
-				<div class="card-body">
-					<div class="row">
-						<div class="col-sm-3">
-							<div class="row">
-								<div class="col-auto">
-								{% if thread.is_anonymous or not thread.candidate.picture_url %}
-										<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover" src="https://p.djinni.co/static/i/default-userpic@2x.png" alt="">
-								{% else %}
-										<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover" src="{{ thread.candidate.picture_url }}" alt="">
-								{% endif %}
-								</div>
-								<div class="col">
-									<small>
-										{% if thread.is_anonymous %}
-											<div>{{ candidate.position }}</div>
-										{% else %}
-											<div>{{ candidate.name }}</div>
-										{% endif %}
-										<div class="text-secondary">
-											<div>
-												${{ candidate.salary_min }}, {{ candidate.experience_years }} years of experience,
-											</div>
-											<div>
-												{{ candidate.english_level }}, {{ candidate.country_code }}{% if candidate.location %}, {{ candidate.location }}{% endif %}
-											</div>
-										</div>
-									</small>
-								</div>
-							</div>
-						</div>
-						<div class="col-sm">
-							<header><strong>{{ thread.job.position }}</strong></header>
-							<div>
-								{% if last_message.action in ['apply', 'accept'] %}
-									<div>Candidate opened contacts</div>
-								{% endif %}
-								{% if last_message.body %}
-									{{ last_message.body|truncate(100) }}
-								{% endif %}
-								
-							</div>
-							<a href="{{ url('inbox_thread', thread.id) }}"><small>Open thread</small></a>
-						</div>
-						<div class="col-sm-auto">
-							<small class="text-secondary">
-								{{ last_message.created|date('d.m.Y') }}
-							</small>
-						</div>
-					</div>
-				</div>
-			</div>
-		{% endfor %}
+                    Show Only Jobs: {{ current_job or 'All' }}
+                </button>
+                <ul class="dropdown-menu"
+                    hx-get="{{ url('sb:inbox') }}"
+                    style="height: 20rem; overflow: auto"
+                    aria-labelledby="filter-by-job">
+                    {% for j in jobs %}
+                        <li><button class="dropdown-item" type="submit">
+                            {{ '#%s: %s' % (j.id, j.position) }}
+                        </button></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <input type="search" placeholder="Search in Messages (NIY)"
+                style="margin-left: 10px">
+
+            <button class="btn btn-sm btn-outline-secondary" style="float: right">
+                Open Advanced Scoring Tool
+            </button>
+
+            <script>
+            el = document.currentScript.previousElementSibling;
+            $(el).on('click', function (ev) {
+                el.classList.toggle('active');
+                $('#adv-scoring-tool').toggle('hidden');
+            });
+            </script>
+
+            <!-- <div class="dropdown" style="float: right">
+            <button class="btn btn-sm btn-secondary dropdown-toggle"
+            type="button" id="sort-choice" data-bs-toggle="dropdown"
+            aria-expanded="false">
+
+            Sorting: {{ current_sorting }}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+            <li><a class="dropdown-item" href="#">Most Recent Answer</a></li>
+            <li><a class="dropdown-item" href="#">Salary Low-High</a></li>
+            <li><a class="dropdown-item" href="#">Salary High-Low</a></li>
+            <li><a class="dropdown-item" href="#">Experience Low-High</a></li>
+            <li><a class="dropdown-item" href="#">Experience High-Low</a></li>
+            <li><a class="dropdown-item" href="#">Advanced Sorting</a></li>
+            </ul>
+            </div> -->
+        </div>
+
+        <div class="mb-3" style="display: block" id="adv-scoring-tool">
+            {% include 'inbox/mixin/advanced-scoring-tool.jinja' %}
+        </div>
+
+        <div id="chat-list">
+            {% include 'inbox/mixin/chat-list.jinja' %}
+        </div>
+
+        <span id="spinner" class="htmx-indicator">
+            <img src="{{ static('img/spinner-mod.gif') }}"
+                style="height: 2em" />
+        </span>
 	</div>
 {% endblock content %}

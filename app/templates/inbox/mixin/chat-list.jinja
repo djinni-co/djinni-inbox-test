@@ -1,0 +1,12 @@
+
+{% for thread in threads %}
+	{% set last_message = thread.last_message %}
+	{% set candidate = thread.candidate %}
+
+	{% include 'inbox/mixin/single-chat.jinja' %}
+{% endfor %}
+
+<div id="load-more-pin" hx-get="{{ next_page_url }}"
+    hx-trigger="revealed"
+    hx-swap="outerHTML"
+    hx-indicator="#spinner">

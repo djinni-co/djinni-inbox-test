@@ -39,8 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-	'sandbox.apps.SandboxConfig',
-	"django_jinja",
+
+    'sandbox.apps.SandboxConfig',
+    "django_jinja",
 ]
 
 MIDDLEWARE = [
@@ -74,7 +75,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'OPTIONS': {
-            "match_extension": (".html"),
+            "match_extension": (".html", '.jinja'),
         },
     },
 ]
@@ -91,7 +92,7 @@ DATABASES = {
         'NAME': os.getenv('POSTGRES_DB'),
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': 'db',  # Use the service name from docker-compose.yml
+        'HOST': '127.0.0.1',  # Use the service name from docker-compose.yml
         'PORT': '5432',
     }
 }
@@ -133,6 +134,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
