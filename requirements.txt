@@ -8,3 +8,5 @@ pycountry==22.3.5
 pytz==2023.3.post1
 sqlparse==0.4.4
 typing_extensions==4.8.0
+Celery==5.3.4
+redis==4.6.0
