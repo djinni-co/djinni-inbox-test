@@ -36,6 +36,8 @@ https://www.loom.com/
 
 Подаватися на вакансію не обовʼязково - можете зробити задачу just for fun. І підтримати важливий для вас збір на ЗСУ.
 
+Телеграм для звязку @ovvshieee
+
 ## Installation
 
 ### Prerequisites 
