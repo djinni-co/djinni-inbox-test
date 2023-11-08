@@ -5,7 +5,10 @@
 	{% include 'inbox/mixin/single-chat.jinja' %}
 {% endfor %}
 
-<div id="load-more-pin" hx-get="{{ next_page_url }}"
-    hx-trigger="revealed"
-    hx-swap="outerHTML"
-    hx-indicator="#spinner">
+<!-- FIXME: it's a simplified approach -->
+{% if threads|length %}
+    <div id="load-more-pin" hx-get="{{ next_page_url }}"
+        hx-trigger="revealed"
+        hx-swap="outerHTML"
+        hx-indicator="#spinner">
+{% endif %}
