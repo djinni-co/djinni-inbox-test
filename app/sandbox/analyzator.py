@@ -34,7 +34,7 @@ class Analyzator:
         # primitive preprocess
         model_str.replace("\n", " ")
         model_str.replace("?", " ")
-        model_str.replace("r", " ")
+        model_str.replace("\r", " ")
         #
         return model_str
 
