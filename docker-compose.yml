@@ -13,7 +13,19 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
-
+  celery:
+    build: .
+    ports:
+      - "8000:${PORT:-8000}"
+    volumes:
+      - .:/app
+    command: cd app; celery -A project worker -l info
+    environment:
+      - DEBUG=True
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
   db:
     image: postgres:latest
     environment:
