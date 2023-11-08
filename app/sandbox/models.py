@@ -3,6 +3,9 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 import pycountry
 
+from .services import count_score
+
+
 COUNTRY_CHOICES: list[tuple[str, str]] = sorted(
     ((c.alpha_3, c.name) for c in pycountry.countries),
     key=lambda c: c[1],
@@ -283,6 +286,10 @@ class MessageThread(models.Model):
     @property
     def last_message(self):
         return self.message_set.last()
+    
+    @property
+    def lazy_score(self) -> int:
+        return count_score(self, lazy=True)
 
     class Meta:
         ordering = ("-last_updated",)

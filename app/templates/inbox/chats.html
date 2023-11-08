@@ -7,6 +7,15 @@
 		{% for thread in threads %}
 			{% set last_message = thread.last_message %}
 			{% set candidate = thread.candidate %}
+			{% set score = thread.lazy_score %}
+
+			{% if score >= 90 %}
+				{% set score_color = "text-success" %}
+			{% elif score >= 50 and score < 90 %}
+                {% set score_color = "text-warning" %}
+			{% elif score < 50 %}
+                {% set score_color = "text-secondary" %}
+			{% endif %}
 
 			<div id="thread-{{ thread.id }}" class="card mb-4">
 				<div class="card-body">
@@ -57,6 +66,11 @@
 								{{ last_message.created|date('d.m.Y') }}
 							</small>
 						</div>
+						<div class="col-sm-auto">
+                            <small class={{ score_color }}>
+                                {{ thread.lazy_score }}%
+                            </small>
+                        </div>
 					</div>
 				</div>
 			</div>
