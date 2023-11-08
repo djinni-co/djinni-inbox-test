@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import os
 from pathlib import Path
 
+from pydantic_settings import BaseSettings
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,9 +25,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-cm7kmad02=)e($jgj(m=ut$1p(1t25thew6i2=rx1300i^s75b'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG')
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '[::1]']
+
+
+# Inbox scoring settings
+class ScoringSettings(BaseSettings):
+    SCORE_EXP_WEIGHT: float
+    SCORE_ENG_WEIGHT: float
+    SCORE_SALARY_WEIGHT: float
+
+    class Config:
+        env_file = '../.env'
+        env_file_encoding = "utf-8"
+
+
+SCORING_SETTINGS: ScoringSettings = ScoringSettings()
 
 # Application definition
 

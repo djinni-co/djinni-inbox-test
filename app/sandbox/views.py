@@ -6,16 +6,16 @@ from .models import Recruiter, MessageThread
 from .scorer import SimilarityInboxScorer
 
 RECRUITER_ID: Final[int] = 125528
-THREADS_LIMIT: Final[int] = 10
+THREADS_LIMIT: Final[int] = 300
 
 
 def inbox(request):
     recruiter = Recruiter.objects.get(id=RECRUITER_ID)
     threads = MessageThread.objects.filter(recruiter=recruiter).select_related('candidate', 'job')[:THREADS_LIMIT]
-
     scorer = SimilarityInboxScorer(threads)
 
-    _context = {'title': "Djinni - Inbox", 'recruiter': recruiter, 'threads': threads, 'scores': scorer.score()}
+    _context = {'title': "Djinni - Inbox", 'recruiter': recruiter,
+                'scored_threads': sorted(zip(threads, scorer.score()), key=lambda x: x[1], reverse=True)}
 
     return render(request, 'inbox/chats.html', _context)
 
