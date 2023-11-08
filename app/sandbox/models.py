@@ -3,10 +3,27 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 import pycountry
 
+from app.sandbox.utils.message_thread_sorting_priorities import (
+    position_priorities,
+    primary_keyword_priorities,
+    english_level_priorities,
+    secondary_keyword_priorities,
+    skills_priorities,
+    location_priorities,
+    salary_priorities,
+    exp_years_priorities,
+    domain_priorities,
+    company_type_priorities,
+    candidate_archived_priorities,
+    recruiter_favorite_priorities,
+)
+
+
 COUNTRY_CHOICES: list[tuple[str, str]] = sorted(
     ((c.alpha_3, c.name) for c in pycountry.countries),
     key=lambda c: c[1],
 )
+
 
 class LegacyUACity(models.TextChoices):
     """used in jobs/candidate"""
@@ -285,5 +302,20 @@ class MessageThread(models.Model):
         return self.message_set.last()
 
     class Meta:
-        ordering = ("-last_updated",)
+        ordering = (
+            position_priorities.desc(),
+            primary_keyword_priorities.desc(),
+            english_level_priorities.desc(),
+            secondary_keyword_priorities.desc(),
+            skills_priorities.desc(),
+            location_priorities.desc(),
+            salary_priorities.desc(),
+            exp_years_priorities.desc(),
+            domain_priorities.desc(),
+            company_type_priorities.desc(),
+            candidate_archived_priorities.desc(),
+            recruiter_favorite_priorities.desc(),
+            '~last_updated',
+            '~job__position'
+        )
         unique_together = (Message.Sender.CANDIDATE, Message.Sender.RECRUITER)
