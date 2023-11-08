@@ -1,22 +1,8 @@
 import enum
 from django.db import models
+from django.db.models import Q, Case, When, Value, IntegerField, F
 from django.utils.translation import gettext_lazy as _
 import pycountry
-
-from app.sandbox.utils.message_thread_sorting_priorities import (
-    position_priorities,
-    primary_keyword_priorities,
-    english_level_priorities,
-    secondary_keyword_priorities,
-    skills_priorities,
-    location_priorities,
-    salary_priorities,
-    exp_years_priorities,
-    domain_priorities,
-    company_type_priorities,
-    candidate_archived_priorities,
-    recruiter_favorite_priorities,
-)
 
 
 COUNTRY_CHOICES: list[tuple[str, str]] = sorted(
@@ -261,6 +247,62 @@ class Message(models.Model):
         ordering = ('created',)
 
 
+english_level_priorities = Case(
+        When(candidate__english_level=EnglishLevel.BASIC, then=Value(1)),
+        When(candidate__english_level=EnglishLevel.PRE, then=Value(2)),
+        When(candidate__english_level=EnglishLevel.INTERMEDIATE, then=Value(3)),
+        When(candidate__english_level=EnglishLevel.UPPER, then=Value(4)),
+        When(candidate__english_level=EnglishLevel.FLUENT, then=Value(5)),
+        default=Value(0),
+        output_field=IntegerField(),
+)
+position_priorities = Case(
+    When(candidate__position=F('job__position'), then=Value(1)),
+    default=Value(0),
+    output_field=IntegerField(),
+)
+primary_keyword_priorities = Case(
+    When(candidate__primary_keyword=F('job__primary_keyword'), then=Value(1)),
+    default=Value(0),
+    output_field=IntegerField(),
+)
+secondary_keyword_priorities = Case(
+    When(candidate__secondary_keyword=F('job__secondary_keyword'), then=Value(1)),
+    default=Value(0),
+    output_field=IntegerField(),
+)
+skills_priorities = Case(
+    When(Q(candidate__skills_cache__contains=F("job__extra_keywords")), then=Value(1)),
+    default=Value(0),
+    output_field=IntegerField(),
+)
+location_priorities = Case(
+    When(candidate__location=F('job__location'), then=Value(1)),
+    default=Value(0),
+    output_field=IntegerField(),
+)
+domain_priorities = Case(
+    When(Q(candidate__domain_zones__contains=F("job__domain")), then=Value(1)),
+    default=Value(0),
+    output_field=IntegerField(),
+)
+company_type_priorities = Case(
+    When(~Q(candidate__uninterested_company_types__contains=F("job__company_type")), then=Value(1)),
+    default=Value(0),
+    output_field=IntegerField(),
+)
+candidate_archived_priorities = Case(
+    When(candidate_archived=False, then=Value(1)),
+    default=Value(0),
+    output_field=IntegerField(),
+)
+recruiter_favorite_priorities = Case(
+    When(recruiter_favorite=True, then=Value(1)),
+    default=Value(0),
+    output_field=IntegerField(),
+)
+
+
 class MessageThread(models.Model):
     class MatchReason(models.TextChoices):
         MATCHED = "matched_v1"
@@ -309,13 +351,13 @@ class MessageThread(models.Model):
             secondary_keyword_priorities.desc(),
             skills_priorities.desc(),
             location_priorities.desc(),
-            salary_priorities.desc(),
-            exp_years_priorities.desc(),
             domain_priorities.desc(),
             company_type_priorities.desc(),
             candidate_archived_priorities.desc(),
             recruiter_favorite_priorities.desc(),
-            '~last_updated',
-            '~job__position'
+            "-candidate__experience_years",
+            "candidate__salary_min",
+            '-last_updated',
+            '-job__position'
         )
         unique_together = (Message.Sender.CANDIDATE, Message.Sender.RECRUITER)
