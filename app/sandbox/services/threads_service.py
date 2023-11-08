@@ -15,6 +15,7 @@ class ThreadsService:
             score = calculating_service.calculate_candidate_score()
             message_thread.score = score.total_score
             message_thread.score_description = score.score_description
+            message_thread.skip_signal = True
             if save:
                 message_thread.save(update_fields=['score', 'score_description'])
             return message_thread
