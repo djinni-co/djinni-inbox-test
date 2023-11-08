@@ -39,6 +39,15 @@ class ThreadScoringService:
         self.job = job
 
     def calculate_english_level_score(self) -> CalculatedScore:
+        """
+        Calculate the English level score based on the candidate's proficiency compared to the job requirement.
+        It uses a mapping of English levels to numerical scores.
+        If the candidate's level is below the job's requirement,
+        the score is reduced by a coefficient for each level of difference.
+        If the candidate meets or exceeds the
+        requirement, a perfect score is assigned.
+        The final score is weighted according to predefined weights.
+        """
         english_levels: Dict[str, int] = {
             EnglishLevel.NONE: 0,
             EnglishLevel.BASIC: 1,
@@ -61,6 +70,11 @@ class ThreadScoringService:
         return CalculatedScore(raw_score=score, weighted_score=score * self.weights.english_level)
 
     def calculate_location_score(self) -> CalculatedScore:
+        """
+        Calculate the location score depending on the candidate's country code, their willingness to relocate,
+        and the job's accepted region. A perfect score is given if the candidate is within the job's region
+        or willing to relocate. Otherwise, no score or a partial score is given. The score is then weighted.
+        """
         if not self.job.accept_region:
             # worldwide
             score = 1.0
@@ -80,7 +94,13 @@ class ThreadScoringService:
         return CalculatedScore(raw_score=score, weighted_score=score * self.weights.location)
 
     def calculate_experience_score(self) -> CalculatedScore:
-        # Convert job posting experience requirement to a numerical value
+        """
+        Calculate the experience score by comparing the candidate's years of experience against the job's requirements.
+        A full score is given if the candidate's experience meets or exceeds the requirement.
+        If not, the score is reduced proportionally to the experience gap,
+        with a customizable coefficient defining the strictness of the penalty.
+        The score is then weighted by the experience weight factor.
+        """
         experience_requirements: Dict[str, int] = {
             JobPosting.Experience.ZERO: 0,
             JobPosting.Experience.ONE: 1,
@@ -103,6 +123,11 @@ class ThreadScoringService:
         return CalculatedScore(raw_score=score, weighted_score=score * self.weights.experience_years)
 
     def calculate_domain_zone_score(self) -> CalculatedScore:
+        """
+        Calculate the domain zone score based on the match between the job's domain and the candidate's domain zones.
+        A score is assigned if there's a match, and it's weighted by the domain zone weight factor.
+        If the candidate has no domain zones listed, the weighted score will be zero.
+        """
         if not self.candidate.domain_zones:
             return CalculatedScore(raw_score=None, weighted_score=0)
         domain_zones = self.candidate.domain_zones.split(', ')
@@ -114,6 +139,9 @@ class ThreadScoringService:
 
     def calculate_company_type_penalty(self) -> CalculatedScore:
         """
+        Calculate any potential penalty based on the candidate's uninterested company types. If the job's company
+        type matches one of the types the candidate is not interested in, a penalty is applied. The penalty is
+        a negative score which is then weighted by the uninterested company type weight factor.
         Assuming uninterested_company_types is a comma-separated string
         return: must return float <0 if a candidate is not interested in the company type
         """
@@ -126,6 +154,11 @@ class ThreadScoringService:
         return CalculatedScore(raw_score=penalty, weighted_score=penalty * self.weights.uninterested_company_type)
 
     def calculate_primary_keyword_score(self) -> CalculatedScore:
+        """
+        Calculate the primary keyword score by checking for an exact match between the candidate's and the job's
+        primary keywords.
+         A full score is given for a match and is weighted by the primary keyword weight factor.
+        """
         # Assuming exact match for simplicity
         if not self.candidate.primary_keyword:
             return CalculatedScore(raw_score=None, weighted_score=0)
@@ -135,7 +168,11 @@ class ThreadScoringService:
         return CalculatedScore(raw_score=score, weighted_score=score * self.weights.primary_keyword)
 
     def calculate_secondary_keyword_score(self) -> CalculatedScore:
-        # Assuming exact match for simplicity
+        """
+        Calculate the secondary keyword score similarly to the primary keyword score, by checking for an exact
+        match between the candidate's and the job's secondary keywords.
+        The score is then weighted by the secondary keyword weight factor.
+        """
         if not self.candidate.secondary_keyword:
             return CalculatedScore(raw_score=None, weighted_score=0)
         score = 0.0
@@ -145,6 +182,13 @@ class ThreadScoringService:
         return CalculatedScore(raw_score=score, weighted_score=score * self.weights.secondary_keyword)
 
     def calculate_salary_score(self) -> CalculatedScore:
+        """
+        Calculate the salary score by determining if the candidate's salary expectations fall within the job's
+        salary range.
+        A full score is given if within range, a partial score if below, and a penalty is applied
+        if the expectation is above the range.
+        The score is weighted by the salary weight factor.
+        """
         candidate_salary_min = self.candidate.salary_min
         job_salary_min = self.job.salary_min
         job_salary_max = self.job.salary_max
@@ -190,6 +234,13 @@ class ThreadScoringService:
         return CalculatedScore(raw_score=score, weighted_score=score * self.weights.skills)
 
     def calculate_candidate_score(self) -> TotalScore:
+        """
+        Calculate the total candidate score by aggregating weighted scores from English level, location,
+        experience, primary and secondary keywords, domain zone, company type penalty, salary, and skills scores.
+        Each component score is calculated by their respective methods and the total weighted score is computed.
+        The method returns a TotalScore dataclass instance
+        containing the total score and a breakdown of each component score.
+        """
         english_score = self.calculate_english_level_score()
         location_score = self.calculate_location_score()
         experience_score = self.calculate_experience_score()
