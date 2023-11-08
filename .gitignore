@@ -133,3 +133,5 @@ dmypy.json
 cython_debug/
 
 .vscode
+
+app/sandbox/sandbox.py
