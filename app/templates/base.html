@@ -1,78 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>
-		{% if title %}
-			{{ title }}
-		{% else %}
-			Djinni
-		{% endif %}
-	</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% if title %}
+            {{ title }}
+        {% else %}
+            Djinni
+        {% endif %}
+    </title>
 
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-	<link rel="icon" type="image/png" href="/static/favicon.ico" sizes="32x32" />
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="icon" type="image/png" href="/static/favicon.ico" sizes="32x32"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
 
-	<style>
-		body {
-			display: flex;
-			flex-direction: column;
-			min-height: 100vh;
-			font-family: 'Inter', sans-serif;
-		}
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
 
-		footer {
-			margin-top: auto;
-		}
-	</style>
+        footer {
+            margin-top: auto;
+        }
+
+        .job-additional-info--title {
+            align-items: center;
+            font-weight: 600;
+            padding: 5px 0;
+        }
+    </style>
 </head>
 <body>
-	<nav class="navbar navbar-dark bg-dark navbar-expand-lg bg-body-tertiary">
-	  <div class="container">
-	     <a class="navbar-brand" href="/">
-	      <img src="https://djinni.co/static/images/logo_djinni_light.svg" alt="Logo" class="d-inline-block align-text-top">
-	    </a>
-	    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-	      <span class="navbar-toggler-icon"></span>
-	    </button>
-	    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-	      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-	        <li class="nav-item">
-	          <a class="nav-link {% if request.path_info == url('inbox') %}active{% endif %}" href="{{ url('inbox') }}">Inbox</a>
-	        </li>
-	        <li class="nav-item">
-	          <a class="nav-link" href="#">Candidates</a>
-	        </li>
-	        <li class="nav-item">
-	          <a class="nav-link" href="#">Jobs</a>
-	        </li>
-					<li class="nav-item">
-	          <a class="nav-link" href="#">Salaries</a>
-	        </li>
-	      </ul>
-	    </div>
-	  </div>
-	</nav>
+<nav class="navbar navbar-dark bg-dark navbar-expand-lg bg-body-tertiary">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <img src="https://djinni.co/static/images/logo_djinni_light.svg" alt="Logo"
+                 class="d-inline-block align-text-top">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path_info == url('inbox') %}active{% endif %}"
+                       href="{{ url('inbox') }}">Inbox</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Candidates</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Jobs</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Salaries</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
 
-	<main class="mb-4">
-		{% block content %}{% endblock content %}
-	</main>
+<main class="mb-4">
+    {% block content %}{% endblock content %}
+</main>
 
-	<footer class="bg-light border-top">
-		<div class="container pt-5 pb-5">
-			<svg width="28px" height="25px" viewBox="0 0 28 25" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-		    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
-		    <title>logo</title>
-		    <desc>Created with Sketch.</desc>
-		    <g id="logo" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-		      <g id="logo_text" transform="translate(-286.000000, -11.000000)" fill="#82829a" fill-rule="nonzero">
-		        <path d="M298.83653,17.9393646 L298.837864,17.9393646 L298.837864,31.0149264
+<footer class="bg-light border-top">
+    <div class="container pt-5 pb-5">
+        <svg width="28px" height="25px" viewBox="0 0 28 25" version="1.1" xmlns="http://www.w3.org/2000/svg"
+        >
+            <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+            <title>logo</title>
+            <desc>Created with Sketch.</desc>
+            <g id="logo" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                <g id="logo_text" transform="translate(-286.000000, -11.000000)" fill="#82829a" fill-rule="nonzero">
+                    <path d="M298.83653,17.9393646 L298.837864,17.9393646 L298.837864,31.0149264
 		          L295.405529,31.0149264 L295.111329,29.8871592 L295.013263,29.8871592
 		          C294.588305,30.3121171 294.097976,30.6553472 293.542262,30.9168597
 		          C292.986548,31.1783723 292.447186,31.3091266 291.924161,31.3091266
@@ -110,11 +121,13 @@
 		          C308.907435,27.2169861 310.012707,26.1117144 311.376128,26.1117144
 		          C312.73955,26.1117144 313.844822,27.2169861 313.844822,28.5804077
 		          C313.844822,29.9438294 312.73955,31.0491011 311.376128,31.0491011 Z" id="logo"></path>
-		      </g>
-		    </g>
-		  </svg>
-		</div>
-	</footer>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+                </g>
+            </g>
+        </svg>
+    </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
 </body>
 </html>
