@@ -1,23 +1,27 @@
-from django.http import HttpResponse
-from django.db.models import Count, Q
+from typing import Final
+
 from django.shortcuts import render
 
-
 from .models import Recruiter, MessageThread
+from .scorer import SimilarityInboxScorer
 
-# Hardcode for logged in as recruiter
-RECRUITER_ID = 125528
+RECRUITER_ID: Final[int] = 125528
+THREADS_LIMIT: Final[int] = 10
+
 
 def inbox(request):
-    recruiter = Recruiter.objects.get(id = RECRUITER_ID)
-    threads = MessageThread.objects.filter(recruiter = recruiter).select_related('candidate', 'job')
+    recruiter = Recruiter.objects.get(id=RECRUITER_ID)
+    threads = MessageThread.objects.filter(recruiter=recruiter).select_related('candidate', 'job')[:THREADS_LIMIT]
 
-    _context = { 'title': "Djinni - Inbox", 'recruiter': recruiter, 'threads': threads }
+    scorer = SimilarityInboxScorer(threads)
+
+    _context = {'title': "Djinni - Inbox", 'recruiter': recruiter, 'threads': threads, 'scores': scorer.score()}
 
     return render(request, 'inbox/chats.html', _context)
 
+
 def inbox_thread(request, pk):
-    thread = MessageThread.objects.get(id = pk)
+    thread = MessageThread.objects.get(id=pk)
     messages = thread.message_set.all().order_by('created')
 
     _context = {

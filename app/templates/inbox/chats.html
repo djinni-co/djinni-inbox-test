@@ -1,65 +1,77 @@
 {% extends "base.html" %}
 
 {% block content %}
-	<div class="container pt-3">
-		<h1 class="mb-3">Inbox</h1>
+    <div class="container pt-3">
+        <h1 class="mb-3">Inbox</h1>
 
-		{% for thread in threads %}
-			{% set last_message = thread.last_message %}
-			{% set candidate = thread.candidate %}
+        {% for thread in threads %}
+            {% set last_message = thread.last_message %}
+            {% set candidate = thread.candidate %}
 
-			<div id="thread-{{ thread.id }}" class="card mb-4">
-				<div class="card-body">
-					<div class="row">
-						<div class="col-sm-3">
-							<div class="row">
-								<div class="col-auto">
-								{% if thread.is_anonymous or not thread.candidate.picture_url %}
-										<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover" src="https://p.djinni.co/static/i/default-userpic@2x.png" alt="">
-								{% else %}
-										<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover" src="{{ thread.candidate.picture_url }}" alt="">
-								{% endif %}
-								</div>
-								<div class="col">
-									<small>
-										{% if thread.is_anonymous %}
-											<div>{{ candidate.position }}</div>
-										{% else %}
-											<div>{{ candidate.name }}</div>
-										{% endif %}
-										<div class="text-secondary">
-											<div>
-												${{ candidate.salary_min }}, {{ candidate.experience_years }} years of experience,
-											</div>
-											<div>
-												{{ candidate.english_level }}, {{ candidate.country_code }}{% if candidate.location %}, {{ candidate.location }}{% endif %}
-											</div>
-										</div>
-									</small>
-								</div>
-							</div>
-						</div>
-						<div class="col-sm">
-							<header><strong>{{ thread.job.position }}</strong></header>
-							<div>
-								{% if last_message.action in ['apply', 'accept'] %}
-									<div>Candidate opened contacts</div>
-								{% endif %}
-								{% if last_message.body %}
-									{{ last_message.body|truncate(100) }}
-								{% endif %}
-								
-							</div>
-							<a href="{{ url('inbox_thread', thread.id) }}"><small>Open thread</small></a>
-						</div>
-						<div class="col-sm-auto">
-							<small class="text-secondary">
-								{{ last_message.created|date('d.m.Y') }}
-							</small>
-						</div>
-					</div>
-				</div>
-			</div>
-		{% endfor %}
-	</div>
+            <div id="thread-{{ thread.id }}" class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <div class="row">
+                                <div class="col-auto">
+                                    {% if thread.is_anonymous or not thread.candidate.picture_url %}
+                                        <img class="rounded-circle" width="30px" height="30px" style="object-fit: cover"
+                                             src="https://p.djinni.co/static/i/default-userpic@2x.png" alt="">
+                                    {% else %}
+                                        <img class="rounded-circle" width="30px" height="30px" style="object-fit: cover"
+                                             src="{{ thread.candidate.picture_url }}" alt="">
+                                    {% endif %}
+                                </div>
+                                <div class="col">
+                                    <small>
+                                        {% if thread.is_anonymous %}
+                                            <div>{{ candidate.position }}</div>
+                                        {% else %}
+                                            <div>{{ candidate.name }}</div>
+                                        {% endif %}
+                                        <div class="text-secondary">
+                                            <div>
+                                                ${{ candidate.salary_min }}, {{ candidate.experience_years }} years of
+                                                experience,
+                                            </div>
+                                            <div>
+                                                {{ candidate.english_level }},
+                                                {{ candidate.country_code }}{% if candidate.location %},
+                                                    {{ candidate.location }}{% endif %}
+                                            </div>
+                                        </div>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm">
+                            <header><strong>{{ thread.job.position }}</strong></header>
+                            <div>
+                                {% if last_message.action in ['apply', 'accept'] %}
+                                    <div>Candidate opened contacts</div>
+                                {% endif %}
+                                {% if last_message.body %}
+                                    {{ last_message.body|truncate(100) }}
+                                {% endif %}
+
+                            </div>
+                            <a href="{{ url('inbox_thread', thread.id) }}"><small>Open thread</small></a>
+                        </div>
+                        <div class="col-sm-auto">
+                            <small class="text-secondary">
+                                {{ last_message.created|date('d.m.Y') }}
+                            </small>
+                            <small class="text-success">
+                                {% for score in scores %}
+                                    {% if score[0] == thread.id %}
+                                        {{ "{:.2f}".format(score[1] * 10) }}
+                                    {% endif %}
+                                {% endfor %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
 {% endblock content %}
