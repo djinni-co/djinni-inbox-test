@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<div class="container pt-5 pb-5">
+		<div class="row">
+			<div class="col-sm-12">
+				<div class="card mb-12">
+						<div class="card-body">
+							<header>
+								<div class="row mb-3">
+                                    <div class="col">
+                                        <strong>
+                                            {{ job.position }}
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-auto">
+                                        <strong>
+                                            {{ job.primary_keyword }}
+                                        </strong>
+                                    </div>
+                                    <div class="col-auto">
+                                        <strong>
+                                            Domain: {{ job.domain }}
+                                        </strong>
+                                    </div>
+                                    <div class="col-auto">
+                                        <strong>
+                                            Experience: {{ job.exp_years }}
+                                        </strong>
+                                    </div>
+                                    <div class="col-auto">
+                                        <strong>
+                                             English: {{ job.english_level }}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </header>
+
+							{% if job.long_description %}
+								<div class="mb-2">
+									{{ job.long_description }}
+								</div>
+							{% endif %}
+						</div>
+					</div>
+            </div>
+        </div>
+    <br>
+        <h2>Best fitted candidates that applied</h2>
+    <br>
+        <div class="col-sm-12">
+            {% for rated_thread in rated_threads %}
+                <div class="card mb-12">
+                    {{ rated_thread['candidate'].name }}, <br>
+                    Experience: {{ rated_thread['candidate'].experience_years }} <br>
+                    Match score: {{ (rated_thread['score']*100) | round(2) }} points <br>
+                    English: {{ rated_thread['candidate'].english_level }} <br>
+                    {% if rated_thread['candidate'].domain_zones %}
+                        Not interested: {{ rated_thread['candidate'].domain_zones }} <br>
+                    {% endif %}
+                    <div class="card-body">
+                        <header>
+                            <div class="row mb-3">
+                                <div class="col-auto">
+                                    <strong>
+                                        {{ rated_thread['candidate'].primary_keyword }}
+                                    </strong>
+                                </div>
+                                <div class="col-auto">
+                                    <small class="text-secondary">
+                                        {{ rated_thread['candidate'].skills_cache }}
+                                    </small>
+                                </div>
+                            </div>
+                        </header>
+                        <a href="{{ url('inbox_thread', rated_thread['thread'].id) }}"><small>Open thread</small></a>
+                    </div>
+                </div>
+                <br>
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock content %}

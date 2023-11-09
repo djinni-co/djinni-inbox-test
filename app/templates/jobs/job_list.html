@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<div class="container pt-5 pb-5">
+		<div class="row">
+			<div class="col-sm-12">
+				{% for job in jobPosting %}
+				<div class="card mb-12">
+						<div class="card-body">
+							<header>
+								<div class="row mb-3">
+									<div class="col">
+										<strong>
+									    {{ job.position }}
+										</strong>
+									</div>
+									<div class="col-auto">
+										<small class="text-secondary">
+										{{ job.primary_keyword }}
+										</small>
+									</div>
+								</div>
+							</header>
+
+							{% if job.long_description %}
+								<div class="mb-2">
+									{{ job.long_description }}
+								</div>
+							{% endif %}
+                        <a href="{{ url('jobs_candidates', job.id) }}">Check applied candidates</a>
+						</div>
+					</div>
+                    <br>
+				{% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock content %}
