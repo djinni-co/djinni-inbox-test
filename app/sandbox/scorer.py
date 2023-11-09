@@ -1,19 +1,28 @@
 import abc
-from itertools import groupby
+from typing import Final
 
 from django.conf import settings
-from gensim.corpora import Dictionary
-from gensim.matutils import cossim
-from gensim.models import TfidfModel
 from gensim.utils import simple_preprocess
 
-from .models import MessageThread, JobPosting, Candidate, EnglishLevel
+from .models import JobPosting, Candidate, EnglishLevel
 from .utils import cosine_similarity, vectorize, get_choice_index
 
+SCORE_MIN: Final[float] = 0.0
+SCORE_MAX: Final[float] = 1.0
 
-class InboxScorer(abc.ABC):
-    def score(self) -> list[float]:
+
+class CandidateScorer(abc.ABC):
+    def compute(self, candidate: Candidate, job: JobPosting) -> float:
         pass
+
+
+class SimilarityCandidateScorer(CandidateScorer):
+    def compute(self, candidate: Candidate, job: JobPosting) -> float:
+        bow = self.parse_job_keywords(job)
+        job_vector = vectorize(bow, bow)
+        candidate_vector = vectorize(self.parse_candidate_keywords(candidate), bow)
+
+        return cosine_similarity(candidate_vector, job_vector)
 
     @staticmethod
     def parse_candidate_keywords(candidate: Candidate) -> list[str]:
@@ -37,71 +46,38 @@ class InboxScorer(abc.ABC):
 
         return list(set(simple_preprocess(' '.join(dataset), deacc=True)))
 
-    @staticmethod
-    def base_score(job: JobPosting, candidate: Candidate) -> float:
-        score: float = 0.0
-        scoring_settings = settings.SCORING_SETTINGS
-        candidate_eng = get_choice_index(EnglishLevel, candidate.english_level) + 1
-        desired_eng = get_choice_index(EnglishLevel, job.english_level) + 1
 
-        score += (candidate.experience_years - 0 if job.exp_years == JobPosting.Experience.ZERO
-                  else int(job.exp_years[:-1])) / 10 * scoring_settings.SCORE_EXP_WEIGHT
-        score += (candidate_eng - desired_eng) / 10 * scoring_settings.SCORE_ENG_WEIGHT
-        score += -scoring_settings.SCORE_SALARY_WEIGHT if candidate.salary_min > job.salary_max \
-            else scoring_settings.SCORE_SALARY_WEIGHT if candidate.salary_min < job.salary_min else 0
+class WeightCandidateScorer(CandidateScorer):
+    def __init__(self, settings_: settings.SCORING_SETTINGS):
+        self._exp_weight: float = settings_.SCORE_EXP_WEIGHT
+        self._eng_weight: float = settings_.SCORE_ENG_WEIGHT
+        self._salary_weight: float = settings_.SCORE_SALARY_WEIGHT
+        self._company_type_weight: float = settings_.SCORE_COMPANY_TYPE_WEIGHT
+
+    def compute(self, candidate: Candidate, job: JobPosting) -> float:
+        score = SCORE_MIN
+        job_exp_years = 0 if job.exp_years == JobPosting.Experience.ZERO else int(job.exp_years[:-1])
+
+        score += self._compute_experience(candidate.experience_years, job_exp_years)
+        score += self._compute_english(candidate.english_level, job.english_level)
+        score += self._compute_salary(candidate.salary_min, job.salary_min, job.salary_max)
 
         if candidate.uninterested_company_types:
-            score -= scoring_settings.SCORE_COMPANY_TYPE_WEIGHT if job.company_type in candidate.uninterested_company_types.split(', ') else 0
+            score += self._compute_company_type(job.company_type, candidate.uninterested_company_types.split(', '))
 
         return score
 
+    def _compute_experience(self, candidate_exp: float, job_exp: float):
+        return (candidate_exp - job_exp) / 10 * self._exp_weight
 
-class SimilarityInboxScorer(InboxScorer):
-    def __init__(self, inbox: list[MessageThread]):
-        self._inbox = inbox
+    def _compute_english(self, candidate_eng: str, job_eng: str):
+        candidate_eng = get_choice_index(EnglishLevel, candidate_eng) + 1
+        job_eng = get_choice_index(EnglishLevel, job_eng) + 1
 
-    def score(self) -> list[float]:
-        scores: list[float] = []
-        for thread in self._inbox:
-            bow = self.parse_job_keywords(thread.job)
-            job_vector = vectorize(bow, bow)
+        return (candidate_eng - job_eng) / 10 * self._eng_weight
 
-            candidate_vector = vectorize(self.parse_candidate_keywords(thread.candidate), bow)
-            score = cosine_similarity(candidate_vector, job_vector)
-            base_score = self.base_score(thread.job, thread.candidate)
-            scores.append(max(0, min(1, score + base_score)))
+    def _compute_salary(self, candidate_salary: int, job_salary_min: int, job_salary_max: int):
+        return -self._salary_weight if candidate_salary > job_salary_max else self._salary_weight if candidate_salary < job_salary_min else 0
 
-        return scores
-
-
-class TfidfInboxScorer(InboxScorer):
-    def __init__(self, inbox: list[MessageThread]):
-        self._inbox: list[MessageThread] = inbox
-        self._jobToThreads: dict[JobPosting, list[MessageThread]] = {}
-
-        for job, threads in groupby(self._inbox, lambda thread: thread.job):
-            self._jobToThreads.setdefault(job, []).extend(threads)
-
-    def score(self) -> list[float]:
-        scores: list[float] = []
-        for job, threads in self._jobToThreads.items():
-            model, dictionary = self._gather_corpus(job, threads)
-
-            for thread in threads:
-                candidate_vector = model[dictionary.doc2bow(self.parse_candidate_keywords(thread.candidate))]
-                job_vector = model[dictionary.doc2bow(self.parse_job_keywords(thread.job))]
-
-                score = cossim(candidate_vector, job_vector)
-                scores.append(score)
-
-        return scores
-
-    def _gather_corpus(self, job: JobPosting, threads: list[MessageThread]) -> tuple[TfidfModel, Dictionary]:
-        candidates_keywords = [self.parse_candidate_keywords(thread.candidate) for thread in threads]
-        job_keywords = [self.parse_job_keywords(job)]
-
-        corpus = job_keywords + candidates_keywords
-        dictionary = Dictionary(corpus)
-        model = TfidfModel([dictionary.doc2bow(doc) for doc in corpus], id2word=dictionary)
-
-        return model, dictionary
+    def _compute_company_type(self, company_type: str, exclude_company_types: list[str]):
+        return -self._company_type_weight if company_type in exclude_company_types else 0

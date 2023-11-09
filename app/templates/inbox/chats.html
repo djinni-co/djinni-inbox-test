@@ -94,7 +94,7 @@
                             </small>
                             <small class="{% if score >= 0.7 %}text-success{% elif score >= 0.5 %}text-warning{% else %}text-danger{% endif %}"
                                    data-toggle="tooltip" data-placement="top"
-                                   title="Djinni Thread Score: This parameter measures a candidate's relevance to the job vacancy, ranging from 0 to 10. It helps assess how closely a candidate matches the requirements of the vacancy.">
+                                   title="Djinni Candidate Score: This parameter measures a candidate's relevance to the job vacancy, ranging from 0 to 10. It helps assess how closely a candidate matches the requirements of the job.">
                                 {{ "{:.2f}".format(score * 10) }}
                             </small>
                         </div>
