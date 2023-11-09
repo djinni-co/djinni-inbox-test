@@ -2,8 +2,13 @@
 
 {% block content %}
 	<div class="container pt-3">
-		<h1 class="mb-3">Inbox</h1>
-
+		<div class="d-flex justify-content-between align-items-center">
+			<h1 class="mb-3">Inbox</h1>
+            <div class="col-sm-3 btn-group" role="group" aria-label="Sort">
+                <a class="btn btn-dark" href="{{ url('inbox') }}?sort=score" role="button">Best candidates</a>
+                <a class="btn btn-dark" href="{{ url('inbox') }}" role="button">Latest</a>
+            </div>
+        </div>
 		{% for thread in threads %}
 			{% set last_message = thread.last_message %}
 			{% set candidate = thread.candidate %}
@@ -23,9 +28,9 @@
 								<div class="col">
 									<small>
 										{% if thread.is_anonymous %}
-											<div>{{ candidate.position }}</div>
+											<div>{{ candidate.position }} </div>
 										{% else %}
-											<div>{{ candidate.name }}</div>
+											<div>{{ candidate.name }} </div>
 										{% endif %}
 										<div class="text-secondary">
 											<div>
@@ -34,6 +39,9 @@
 											<div>
 												{{ candidate.english_level }}, {{ candidate.country_code }}{% if candidate.location %}, {{ candidate.location }}{% endif %}
 											</div>
+											{% if thread.score %}
+												<div>Matching: {{ thread.score|round(1) }}</div>
+											{% endif %}
 										</div>
 									</small>
 								</div>
@@ -48,7 +56,7 @@
 								{% if last_message.body %}
 									{{ last_message.body|truncate(100) }}
 								{% endif %}
-								
+
 							</div>
 							<a href="{{ url('inbox_thread', thread.id) }}"><small>Open thread</small></a>
 						</div>
