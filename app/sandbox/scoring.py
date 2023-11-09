@@ -5,11 +5,11 @@ from .score_algorithm import ScoreAlgorithm, LogicalRule, SimpleRule, IterableRu
 
 ENGLISH_WEIGTH = {
     EnglishLevel.NONE: 0,
-    EnglishLevel.BASIC: 0.2,
-    EnglishLevel.PRE: 0.5,
-    EnglishLevel.INTERMEDIATE: 1,
+    EnglishLevel.BASIC: 0.5,
+    EnglishLevel.PRE: 1,
+    EnglishLevel.INTERMEDIATE: 1.5,
     EnglishLevel.UPPER: 2,
-    EnglishLevel.FLUENT: 3
+    EnglishLevel.FLUENT: 2.5
 }
 
 EXPERIENCE_WEIGTH = {
@@ -58,9 +58,11 @@ def score_thread(thread):
                            description=f"Considering thread date"))
 
     if job.english_level and candidate.english_level:
-        scoring.add(SimpleRule(score=lower_distance(ENGLISH_WEIGTH.get(candidate.english_level),
-                                                    ENGLISH_WEIGTH.get(job.english_level)),
-                               description="Considering English level"))
+        scoring.add(LogicalRule(score=ENGLISH_WEIGTH.get(candidate.english_level),
+                                when=ENGLISH_WEIGTH.get(candidate.english_level) >= ENGLISH_WEIGTH.get(
+                                    job.english_level),
+                                otherwise=0,
+                                description="Add score if candidate English level greater than job required level"))
 
     if job.location and candidate.location:
         scoring.add(LogicalRule(score=2,
