@@ -14,7 +14,7 @@
 					</div>
 					<div class="card-body">
 						<div>
-							{{candidate.position}}
+                            <strong>{{candidate.position}}</strong>
 						</div>
 						<div>
 							<strong>Category: </strong> {{candidate.primary_keyword}}{% if candidate.secondary_keyword %}, {{candidate.secondary_keyword}}{% endif %}
@@ -61,6 +61,10 @@
 								Email: <a href="mailto:{{ candidate.email }}">{{ candidate.email }}</a>
 							</div>
 						{% endif %}
+                    <br>
+                    <div>
+                        <strong>Match score: {{ (score*100) | round(2) }} points</strong>
+                    </div>
 					</div>
 				</div>
 			</div>
@@ -102,9 +106,9 @@
 							{% endif %}
 
 							{% if message.job %}
-								<strong>Job posting:</strong> {{ message.job.position }}
+                                <strong>{{ message.job.position }}</strong>
 							{% endif %}
-						</div>
+                        </div>
 					</div>
 				{% endfor %}
 			</div>
