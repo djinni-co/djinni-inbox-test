@@ -60,14 +60,14 @@ def _apply_advanced_sorting (threads, weights):
 
             # the higher the salary the higher should be the penalty
             - thr.scores['salary']     / len(thr.scores) * weights['salary']
-        ) * len(thr.scores)
+        )
 
     # from the highest score to the lowest
     return sorted(thrs_ext, key = lambda v: v.scores['total'],
                   reverse = True)
 
 def inbox(req):
-    context = { 'const': C.inbox, 'min': min, 'int': int }
+    context = { 'const': C.inbox, 'max': max, 'int': int }
 
     get_params = QueryDict('', mutable=True)
     get_params.update(req.GET)
@@ -83,7 +83,7 @@ def inbox(req):
         context |= { 'current_job': current_job }
 
     recruiter = Recruiter.objects.get(id = RECRUITER_ID)
-    threads = MessageThread.objects.filter( recruiter = recruiter )
+    all_thrs = threads = MessageThread.objects.filter( recruiter = recruiter )
 
     if current_job:
         threads = threads.filter( job__id = job_filter )
@@ -141,9 +141,9 @@ def inbox(req):
     }
 
     context |= {
-        # FIXME: filter out Jobs that are not referenced by any MessageThread
         'jobs': JobPosting.objects.filter(
             recruiter = recruiter,
+            id__in = set([ t.job_id for t in all_thrs ]),
         ).all()
     }
 
