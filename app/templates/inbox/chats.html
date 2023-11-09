@@ -1,65 +1,74 @@
 {% extends "base.html" %}
 
 {% block content %}
-	<div class="container pt-3">
-		<h1 class="mb-3">Inbox</h1>
+<div class="container pt-3">
+	<h1 class="mb-3">Inbox</h1>
 
-		{% for thread in threads %}
-			{% set last_message = thread.last_message %}
-			{% set candidate = thread.candidate %}
+	{% for thread in threads|sort(reverse=true, attribute='candidate_suitability') %}
+	{% set last_message = thread.last_message %}
+	{% set candidate = thread.candidate %}
 
-			<div id="thread-{{ thread.id }}" class="card mb-4">
-				<div class="card-body">
+	<div id="thread-{{ thread.id }}" class="card mb-4">
+		<div class="card-body">
+			<div class="row">
+				<div class="col-sm-3">
 					<div class="row">
-						<div class="col-sm-3">
-							<div class="row">
-								<div class="col-auto">
-								{% if thread.is_anonymous or not thread.candidate.picture_url %}
-										<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover" src="https://p.djinni.co/static/i/default-userpic@2x.png" alt="">
+						<div class="col-auto">
+							{% if thread.is_anonymous or not thread.candidate.picture_url %}
+							<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover"
+								src="https://p.djinni.co/static/i/default-userpic@2x.png" alt="">
+							{% else %}
+							<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover"
+								src="{{ thread.candidate.picture_url }}" alt="">
+							{% endif %}
+						</div>
+						<div class="col">
+							<small>
+								{% if thread.is_anonymous %}
+								<div>{{ candidate.position }}</div>
 								{% else %}
-										<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover" src="{{ thread.candidate.picture_url }}" alt="">
+								<div>{{ candidate.name }}</div>
 								{% endif %}
+								<div class="text-secondary">
+									<div>
+										${{ candidate.salary_min }}, {{ candidate.experience_years }} years of
+										experience,
+									</div>
+									<div>
+										{{ candidate.english_level }}, {{ candidate.country_code }}{% if
+										candidate.location %}, {{ candidate.location }}{% endif %}
+									</div>
 								</div>
-								<div class="col">
-									<small>
-										{% if thread.is_anonymous %}
-											<div>{{ candidate.position }}</div>
-										{% else %}
-											<div>{{ candidate.name }}</div>
-										{% endif %}
-										<div class="text-secondary">
-											<div>
-												${{ candidate.salary_min }}, {{ candidate.experience_years }} years of experience,
-											</div>
-											<div>
-												{{ candidate.english_level }}, {{ candidate.country_code }}{% if candidate.location %}, {{ candidate.location }}{% endif %}
-											</div>
-										</div>
-									</small>
-								</div>
-							</div>
-						</div>
-						<div class="col-sm">
-							<header><strong>{{ thread.job.position }}</strong></header>
-							<div>
-								{% if last_message.action in ['apply', 'accept'] %}
-									<div>Candidate opened contacts</div>
-								{% endif %}
-								{% if last_message.body %}
-									{{ last_message.body|truncate(100) }}
-								{% endif %}
-								
-							</div>
-							<a href="{{ url('inbox_thread', thread.id) }}"><small>Open thread</small></a>
-						</div>
-						<div class="col-sm-auto">
+							</small>
+							<strong>Suitability:</strong>
 							<small class="text-secondary">
-								{{ last_message.created|date('d.m.Y') }}
+								{{ thread.candidate_suitability }} / 6
 							</small>
 						</div>
 					</div>
 				</div>
+				<div class="col-sm">
+					<header><strong>{{ thread.job.position }}</strong></header>
+					<div>
+						{% if last_message.action in ['apply', 'accept'] %}
+						<div>Candidate opened contacts</div>
+						{% endif %}
+						{% if last_message.body %}
+						{{ last_message.body|truncate(100) }}
+						{% endif %}
+
+					</div>
+					<a href="{{ url('inbox_thread', thread.id) }}"><small>Open thread</small></a>
+				</div>
+				<div class="col-sm-auto">
+					<small class="text-secondary">
+						{{ last_message.created|date('d.m.Y') }}
+					</small>
+
+				</div>
 			</div>
-		{% endfor %}
+		</div>
 	</div>
+	{% endfor %}
+</div>
 {% endblock content %}

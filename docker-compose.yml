@@ -13,6 +13,8 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+    depends_on:
+      - db
 
   db:
     image: postgres:latest

@@ -1,114 +1,121 @@
 {% extends "base.html" %}
 
 {% block content %}
-	<div class="container pt-5 pb-5">
-		<div class="row">
-			<div class="col-sm-4">
-				<div class="card">
-					<div class="card-header">
-						{% if thread.is_anonymous %}
-							{{ candidate.position }}
-						{% else %}
-							{{ candidate.name }}
-						{% endif %}
+<div class="container pt-5 pb-5">
+	<div class="row">
+		<div class="col-sm-4">
+			<div class="card">
+				<div class="card-header">
+					{% if thread.is_anonymous %}
+					{{ candidate.position }}
+					{% else %}
+					{{ candidate.name }}
+					{% endif %}
+				</div>
+				<div class="card-body">
+					<div>
+						<strong>Candidate suitability</strong> {{candidate_score}}
 					</div>
-					<div class="card-body">
-						<div>
-							{{candidate.position}}
-						</div>
-						<div>
-							<strong>Category: </strong> {{candidate.primary_keyword}}{% if candidate.secondary_keyword %}, {{candidate.secondary_keyword}}{% endif %}
-						</div>
-						<div>
-							${{ candidate.salary_min }}, {{ candidate.experience_years }} years of experience, {{ candidate.english_level }}
-						</div>
-						<div>
-							 <strong>Location: </strong> {{ candidate.country_code }}{% if candidate.location %}, {{ candidate.location }}{% endif %}
-						</div>
-						<div>
-							<strong>Skills:</strong> {{ candidate.skills_cache }}
-						</div>
-						<div>
-							<strong>Employment options:</strong> {{ candidate.employment }}
-						</div>
-						{% if candidate.can_relocate %}
-							<div>Ready to relocate</div>
-						{% endif %}
-						{% if candidate.domain_zones or candidate.uninterested_company_types %}
-							<div>
-								<strong>Not interested: </strong> {{candidate.domain_zones or ''}}, {{ candidate.uninterested_company_types or '' }}
-							</div>
-						{% endif %}
-						<div>
-							<strong>Details:</strong>
-							<small>
-								<p>
-									{{candidate.moreinfo or ''}}
-								</p>
-
-								<p>
-									{{candidate.looking_for or ''}}
-								</p>
-
-								<p>
-									{{candidate.highlights or ''}}
-								</p>
-							</small>
-						</div>
-						{% if not thread.is_anonymous %}
-							<hr>
-							<div>
-								Email: <a href="mailto:{{ candidate.email }}">{{ candidate.email }}</a>
-							</div>
-						{% endif %}
+					<div>
+						{{candidate.position}}
 					</div>
+					<div>
+						<strong>Category: </strong> {{candidate.primary_keyword}}{% if candidate.secondary_keyword %},
+						{{candidate.secondary_keyword}}{% endif %}
+					</div>
+					<div>
+						${{ candidate.salary_min }}, {{ candidate.experience_years }} years of experience, {{
+						candidate.english_level }}
+					</div>
+					<div>
+						<strong>Location: </strong> {{ candidate.country_code }}{% if candidate.location %}, {{
+						candidate.location }}{% endif %}
+					</div>
+					<div>
+						<strong>Skills:</strong> {{ candidate.skills_cache }}
+					</div>
+					<div>
+						<strong>Employment options:</strong> {{ candidate.employment }}
+					</div>
+					{% if candidate.can_relocate %}
+					<div>Ready to relocate</div>
+					{% endif %}
+					{% if candidate.domain_zones or candidate.uninterested_company_types %}
+					<div>
+						<strong>Not interested: </strong> {{candidate.domain_zones or ''}}, {{
+						candidate.uninterested_company_types or '' }}
+					</div>
+					{% endif %}
+					<div>
+						<strong>Details:</strong>
+						<small>
+							<p>
+								{{candidate.moreinfo or ''}}
+							</p>
+
+							<p>
+								{{candidate.looking_for or ''}}
+							</p>
+
+							<p>
+								{{candidate.highlights or ''}}
+							</p>
+						</small>
+					</div>
+					{% if not thread.is_anonymous %}
+					<hr>
+					<div>
+						Email: <a href="mailto:{{ candidate.email }}">{{ candidate.email }}</a>
+					</div>
+					{% endif %}
 				</div>
 			</div>
-			<div class="col-sm-8">
-				{% for message in messages %}
-					<div class="card mb-3">
-						<div class="card-body">
-							<header>
-								<div class="row mb-3">
-									<div class="col">
-										<strong>
-											{% if message.sender == 'candidate' %}
-												{% if thread.is_anonymous %}
-													{{ candidate.position }}
-												{% else %}
-													{{ candidate.name }}
-												{% endif %}
-											{% else %}
-												You
-											{% endif %}
-										</strong>
-									</div>
-									<div class="col-auto">
-										<small class="text-secondary">
-											{{ message.created|date('d.m.Y') }}
-										</small>
-									</div>
-								</div>
-							</header>
-
-							{% if message.body %}
-								<div class="mb-2">
-									{{ message.body }}
-								</div>
-							{% endif %}
-
-							{% if message.action in ['accept', 'apply'] %}
-								<p>Candidate opened contacts</p>
-							{% endif %}
-
-							{% if message.job %}
-								<strong>Job posting:</strong> {{ message.job.position }}
-							{% endif %}
-						</div>
-					</div>
-				{% endfor %}
-			</div>
 		</div>
+		<div class="col-sm-8">
+			{% for message in messages %}
+			<div class="card mb-3">
+				<div class="card-body">
+					<header>
+						<div class="row mb-3">
+							<div class="col">
+								<strong>
+									{% if message.sender == 'candidate' %}
+									{% if thread.is_anonymous %}
+									{{ candidate.position }}
+									{% else %}
+									{{ candidate.name }}
+									{% endif %}
+									{% else %}
+									You
+									{% endif %}
+								</strong>
+							</div>
+							<div class="col-auto">
+								<small class="text-secondary">
+									{{ message.created|date('d.m.Y') }}
+								</small>
+							</div>
+						</div>
+					</header>
 
+					{% if message.body %}
+					<div class="mb-2">
+						{{ message.body }}
+					</div>
+					{% endif %}
+
+					{% if message.action in ['accept', 'apply'] %}
+					<p>Candidate opened contacts</p>
+					{% endif %}
+
+					{% if message.job %}
+					<strong>Job posting:</strong> {{ message.job.position }}
+					{% endif %}
+				</div>
+			</div>
+			{% endfor %}
+		</div>
 	</div>
+
+</div>
 {% endblock content %}

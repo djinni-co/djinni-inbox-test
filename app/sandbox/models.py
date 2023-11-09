@@ -8,8 +8,10 @@ COUNTRY_CHOICES: list[tuple[str, str]] = sorted(
     key=lambda c: c[1],
 )
 
+
 class LegacyUACity(models.TextChoices):
     """used in jobs/candidate"""
+
     KYIV = "Київ", _("Kyiv")
     VINNYTSIA = "Вінниця", _("Vinnytsia")
     DNIPRO = "Дніпро", _("Dnipro")
@@ -27,6 +29,7 @@ class LegacyUACity(models.TextChoices):
     CHERNIVTSI = "Чернівці", _("Chernivtsi")
     UZHHOROD = "Ужгород", _("Uzhhorod")
 
+
 class EnglishLevel(models.TextChoices):
     NONE = ("no_english", "No English")
     BASIC = ("basic", "Beginner/Elementary")
@@ -35,20 +38,21 @@ class EnglishLevel(models.TextChoices):
     UPPER = ("upper", "Upper-Intermediate")
     FLUENT = ("fluent", "Advanced/Fluent")
 
+
 class Candidate(models.Model):
     USERTYPE = "candidate"
 
     class EmploymentOption(models.TextChoices):
-        FULLTIME = 'fulltime', _('Office')
-        PARTTIME = 'parttime', _('Part-time')
-        REMOTE = 'remote', _('Remote work')
-        FREELANCE = 'freelance', _('candidate.freelance_one_time_projects')
-        RELOCATE = 'relocate', _('Relocate to another country')
-        MOVE = 'move', _('candidate.profile.move_to_other_city')
+        FULLTIME = "fulltime", _("Office")
+        PARTTIME = "parttime", _("Part-time")
+        REMOTE = "remote", _("Remote work")
+        FREELANCE = "freelance", _("candidate.freelance_one_time_projects")
+        RELOCATE = "relocate", _("Relocate to another country")
+        MOVE = "move", _("candidate.profile.move_to_other_city")
 
     name = models.CharField(max_length=255, blank=True, default="")
     email = models.EmailField(blank=False, db_index=True, unique=True)
-    picture_url = models.CharField(max_length=255, blank=True, default='', null=True)
+    picture_url = models.CharField(max_length=255, blank=True, default="", null=True)
 
     # Profile fields
     position = models.CharField(max_length=255, blank=False, default="")
@@ -93,7 +97,7 @@ class Candidate(models.Model):
     question = models.TextField(blank=True, default="", null=True)
 
     # Profile settings
-    lang = models.CharField(max_length=10, blank=True, default='EN')
+    lang = models.CharField(max_length=10, blank=True, default="EN")
 
     # Meta fields
     last_modified = models.DateTimeField(blank=True, null=True)
@@ -104,12 +108,12 @@ class Candidate(models.Model):
 class Recruiter(models.Model):
     USERTYPE = "recruiter"
 
-    name = models.CharField(max_length=255, blank=True, default='')
+    name = models.CharField(max_length=255, blank=True, default="")
     email = models.EmailField(blank=False, db_index=True, unique=True)
-    picture_url = models.CharField(max_length=255, blank=True, default='', null=True)
+    picture_url = models.CharField(max_length=255, blank=True, default="", null=True)
 
     # Profile settings
-    lang = models.CharField(max_length=10, blank=True, default='EN')
+    lang = models.CharField(max_length=10, blank=True, default="EN")
 
     # Meta fields
     last_updated = models.DateTimeField(blank=True, null=True)
@@ -135,7 +139,7 @@ class JobPosting(models.Model):
         NO_RELOCATE = "no_relocate", _("No relocation")
         CANDIDATE_PAID = "candidate_paid", _("Covered by candidate")
         COMPANY_PAID = "company_paid", _("Covered by company")
-    
+
     class AcceptRegion(models.TextChoices):
         EUROPE = "europe", _("Ukraine + Europe")
         EUROPE_ONLY = "europe_only", _("Only Europe")
@@ -143,10 +147,11 @@ class JobPosting(models.Model):
         __empty__ = _("Worldwide")
 
     # Job description fields
-    position = models.CharField(max_length=250, blank=False, default='')
+    position = models.CharField(max_length=250, blank=False, default="")
     primary_keyword = models.CharField(max_length=50, blank=True, default="")
+
     secondary_keyword = models.CharField(max_length=50, blank=True, default="")
-    long_description = models.TextField(blank=True, default='')
+    long_description = models.TextField(blank=True, default="")
     # Skills
     extra_keywords = models.CharField(max_length=250, blank=True, default="")
     location = models.CharField(max_length=250, blank=True, default="")
@@ -175,20 +180,31 @@ class JobPosting(models.Model):
 
     # Counts
     unread_count = models.IntegerField(blank=False, default=0)
-    search_count = models.IntegerField(blank=False, default=0)  # unused, how many candidates for this job
+    search_count = models.IntegerField(
+        blank=False, default=0
+    )  # unused, how many candidates for this job
     views_count = models.IntegerField(blank=False, default=0)
     applications_count = models.IntegerField(blank=False, default=0)
     sent_count = models.IntegerField(blank=False, default=0)
 
     # Meta fields
-    recruiter = models.ForeignKey('Recruiter', on_delete=models.CASCADE, db_index=True)
+    recruiter = models.ForeignKey("Recruiter", on_delete=models.CASCADE, db_index=True)
 
-    last_modified = models.DateTimeField(blank=True, null=True, auto_now=True, db_index=True)
+    last_modified = models.DateTimeField(
+        blank=True, null=True, auto_now=True, db_index=True
+    )
     published = models.DateTimeField(blank=True, null=True, db_index=True)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
+    # weights
+    primary_keyword_weight = models.FloatField(default=1.0)
+    exp_years_weight = models.FloatField(default=1.0)
+    english_level_weight = models.FloatField(default=1.0)
+    salary_weight = models.FloatField(default=1.0)
+    location_weight = models.FloatField(default=1.0)
+
 
 class Action(str, enum.Enum):
-    MESSAGE = ''
+    MESSAGE = ""
 
     ACCEPT = "accept"
     APPLY = "apply"
@@ -209,14 +225,21 @@ class Action(models.TextChoices):
     POKE = "poke"
     SHADOW_POKE = "shadowpoke"
 
+
 class Bucket(str, enum.Enum):
     """Bucket is the current state of the message thread"""
-    ARCHIVE = 'archive'
-    INBOX = 'inbox'
-    NOTINTERESTED = 'notinterested'
-    POKES = 'pokes'
-    SHORTLIST = 'shortlist'  # TODO: looks deprecated by recruiter_favorite & candidate_favorite
-    UNREAD = 'unread'  # TODO: for recruiter we use INBOX bucket with `last_seen_recruiter`
+
+    ARCHIVE = "archive"
+    INBOX = "inbox"
+    NOTINTERESTED = "notinterested"
+    POKES = "pokes"
+    SHORTLIST = (
+        "shortlist"  # TODO: looks deprecated by recruiter_favorite & candidate_favorite
+    )
+    UNREAD = (
+        "unread"  # TODO: for recruiter we use INBOX bucket with `last_seen_recruiter`
+    )
+
 
 class Message(models.Model):
     class Sender(models.TextChoices):
@@ -224,7 +247,9 @@ class Message(models.Model):
         RECRUITER = "recruiter", _("Recruiter")
 
     body = models.TextField(default="")
-    action = models.CharField(max_length=40, blank=True, default="", choices=Action.choices)
+    action = models.CharField(
+        max_length=40, blank=True, default="", choices=Action.choices
+    )
     sender = models.CharField(max_length=40, blank=False, choices=Sender.choices)
 
     created = models.DateTimeField(db_index=True)
@@ -241,7 +266,7 @@ class Message(models.Model):
     )
 
     class Meta:
-        ordering = ('created',)
+        ordering = ("created",)
 
 
 class MessageThread(models.Model):
@@ -271,7 +296,9 @@ class MessageThread(models.Model):
     feedback_recruiter = models.CharField(max_length=20, blank=True, default="")
     notified_notinterested = models.DateTimeField(blank=True, null=True, db_index=True)
 
-    job = models.ForeignKey("JobPosting", on_delete=models.SET_NULL, null=True, blank=True)
+    job = models.ForeignKey(
+        "JobPosting", on_delete=models.SET_NULL, null=True, blank=True
+    )
     candidate = models.ForeignKey("Candidate", on_delete=models.CASCADE)
     recruiter = models.ForeignKey("Recruiter", on_delete=models.CASCADE)
 
@@ -279,6 +306,7 @@ class MessageThread(models.Model):
     last_seen_recruiter = models.DateTimeField(null=True)
     last_seen_candidate = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
+    candidate_suitability = models.FloatField(blank=True, default=0)
 
     @property
     def last_message(self):
