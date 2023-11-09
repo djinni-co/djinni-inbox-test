@@ -1,9 +1,11 @@
 import time
+import json
+import datetime
 import faiss
 from sentence_transformers import SentenceTransformer, util
 
 from django.db import models
-from .models import MessageThread
+from .models import MessageThread, JobPosting
 
 class Analyzator:
     def __init__(self):
@@ -27,7 +29,6 @@ class Analyzator:
         return round(similarity.numpy()[0][0], 3)
 
     # utils
-
     def convert_model_to_string(self, model: models.Model):
         model_str = str(model.__dict__)
 
@@ -38,6 +39,18 @@ class Analyzator:
         #
         return model_str
 
+    @staticmethod
+    def model_to_dict(model: models.Model):
+        model_dict = model.__dict__.copy()
+
+        if "_state" in model_dict:
+            model_dict.pop('_state', None)
+
+        for key, value in model_dict.items():
+            if isinstance(value, datetime.date):
+                model_dict[key] = value.strftime('%m/%d/%Y')
+
+        return model_dict
 
     #FAISS
     def read_faiss_index(self, faiss_index_path):
@@ -64,7 +77,7 @@ class Analyzator:
 
             candidates_text_data.append(acc_candidate_str)
 
-            ids.append(index) # id should be here (ids should be int) and it's incorrect to use index but I cannot unhash int value
+            ids.append(thread.candidate_id)
 
 
         # Inference
@@ -83,4 +96,33 @@ class Analyzator:
         print("Time to create embs ", exec_time)
 
         faiss.write_index(index2, f'{index_name}')
+
+    # Simplify experimental design
+    @staticmethod
+    def convert_db_to_json(path='data.json'):
+        mg_db_json = {}
+
+        all_jobs = JobPosting.objects.all()
+        for index, job in enumerate(all_jobs):
+            job_dict = Analyzator.model_to_dict(job)
+
+            job_threads = MessageThread.objects.filter(job=job)
+
+            if len(job_threads) == 0: continue  # can be used for test but skipped for now
+
+            for th_index, thread in enumerate(job_threads):
+                thread_dict = Analyzator.model_to_dict(thread)
+                candidate_dict = Analyzator.model_to_dict(thread.candidate)
+
+                if "candidates" not in job_dict:
+                    job_dict["candidates"] = []
+
+                job_dict["candidates"].append({"candidate": candidate_dict, "thread": thread_dict})
+
+            d_key = f"job_{index}"
+            mg_db_json[d_key] = job_dict
+
+        with open(path, 'w') as f:
+            json.dump(mg_db_json, f)
+            print("db dumped to", path)
 

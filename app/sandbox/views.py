@@ -4,12 +4,12 @@ from django.shortcuts import render
 
 from .analyzator import Analyzator
 
-from .models import Recruiter, MessageThread, JobPosting
+from .models import Recruiter, MessageThread
 
 # Hardcode for logged in as recruiter
 RECRUITER_ID = 125528
 
-faiss_index_path = "faissIDMap.index"
+faiss_index_path = "faissIDMap2.index"
 analyzator = Analyzator()
 analyzator.read_faiss_index(faiss_index_path)
 
@@ -22,9 +22,11 @@ def inbox(request):
     # Needed to match faiss index ids (check create_faiss_index func)
     threads = sorted(threads, key=lambda x: x.candidate.name, reverse=False)
 
+    # Analyzator.convert_db_to_json()
+
     # Uncomment these lines to create new faiss index
     # if os.path.exists(faiss_index_path) is False:
-    #   analyzator.create_faiss_index(threads, faiss_index_path)
+    #    analyzator.create_faiss_index(threads, faiss_index_path)
 
     # Inbox based on recruiter-candidate communication
     # but we need to select job for candidates search
@@ -33,7 +35,8 @@ def inbox(request):
     ####
 
     distances, indices = analyzator.faiss_search(selected_job, k=1000)
-    threads = list(map(threads.__getitem__, indices[0]))
+
+    threads = filter(lambda x: x.candidate_id in indices, threads)
 
     threads = map(lambda x:x[1], sorted(enumerate(threads), key=lambda x: distances[0][x[0]], reverse=False)) # sort threads by distance
 
