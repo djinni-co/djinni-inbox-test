@@ -4,7 +4,7 @@ from .models import EnglishLevel, JobPosting, Message
 from .score_algorithm import ScoreAlgorithm, LogicalRule, SimpleRule, IterableRule
 
 ENGLISH_WEIGTH = {
-    EnglishLevel.NONE: 0,
+    EnglishLevel.NONE: 0.2,
     EnglishLevel.BASIC: 0.5,
     EnglishLevel.PRE: 1,
     EnglishLevel.INTERMEDIATE: 1.5,
@@ -61,7 +61,6 @@ def score_thread(thread):
         scoring.add(LogicalRule(score=ENGLISH_WEIGTH.get(candidate.english_level),
                                 when=ENGLISH_WEIGTH.get(candidate.english_level) >= ENGLISH_WEIGTH.get(
                                     job.english_level),
-                                otherwise=0,
                                 description="Add score if candidate English level greater than job required level"))
 
     if job.location and candidate.location:
