@@ -57,13 +57,15 @@ def _apply_advanced_sorting (threads, weights):
             thr.candidate.salary_min - thr.cand_min_sal
         ) / sal_range
 
-        # TODO: Skills measuring is NIY
+        # TODO: Skills & English measuring is NIY
         thr.scores['skills'] = weights['skills'] * 0
+        thr.scores['english'] = weights['english'] * 0
 
         thr.scores['total'] = (
               thr.scores['experience'] * weights['experience']
-            - thr.scores['salary'] * weights['salary']
             + thr.scores['skills'] * weights['skills']
+            + thr.scores['english'] * weights['english']
+            - thr.scores['salary'] * weights['salary']
         )
 
     # from the highest score to the lowest
@@ -71,7 +73,7 @@ def _apply_advanced_sorting (threads, weights):
                      reverse = True)
 
 def inbox(req):
-    context = { 'const': C.inbox }
+    context = { 'const': C.inbox, 'min': min }
 
     get_params = QueryDict('', mutable=True)
     get_params.update(req.GET)
@@ -101,23 +103,27 @@ def inbox(req):
         wt_salary     = get_params.get(C.inbox.http.param.ast.SALARY)
         wt_experience = get_params.get(C.inbox.http.param.ast.EXPERIENCE)
         wt_skills     = get_params.get(C.inbox.http.param.ast.SKILLS)
+        wt_english    = get_params.get(C.inbox.http.param.ast.ENGLISH)
 
         if None not in [wt_salary, wt_experience, wt_skills]:
             context |= {
                 'ast_salary': wt_salary,
                 'ast_experience': wt_experience,
                 'ast_skills': wt_skills,
+                'ast_english': wt_english,
             }
 
             wt_salary     = int(wt_salary) / 100
             wt_experience = int(wt_experience) / 100
             wt_skills     = int(wt_skills) / 100
+            wt_english    = int(wt_english) / 100
 
             if None not in [wt_salary, wt_experience, wt_skills]:
                 threads = _apply_advanced_sorting(threads, {
                     'salary': wt_salary,
                     'experience': wt_experience,
                     'skills': wt_skills,
+                    'english': wt_english,
                 })
     else:
         raise ValueError('Sorting algorithm is incorrect!')

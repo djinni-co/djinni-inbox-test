@@ -6,14 +6,9 @@
     style="width: 100%; vertical-align: middle">
 
     <colgroup>
-        <col span="1" style="width: 20em">
-        <col span="1" style="width: max-content">
+        <col span="1" style="width: 50%">
+        <col span="1" style="width: 50%">
     </colgroup>
-
-    <thead><tr>
-        <th>Component Name</th>
-        <th>Component Weight</th>
-    </tr></thead>
 
     <tbody>
         <tr>
@@ -23,19 +18,15 @@
                 </label>
 
                 <div class="text-secondary">
-                    (Higher value means: The lower salary the better)
+                    (Higher value means: The lower the salary the better)
                 </div>
-            </td>
 
-            <td>
                 <input name="{{ const.http.param.ast.SALARY }}"
-                    type="range" min="0" max="100"
+                    type="range" min="1" max="100"
                     value="{{ ast_salary or 25 }}"
                     style="width: 100%">
             </td>
-        </tr>
 
-        <tr>
             <td>
                 <label for="{{ const.http.param.ast.EXPERIENCE }}">
                     Experience importance
@@ -44,11 +35,9 @@
                 <div class="text-secondary">
                     (Higher value means: The more experience the better)
                 </div>
-            </td>
 
-            <td>
                 <input name="{{ const.http.param.ast.EXPERIENCE }}"
-                    type="range" min="0" max="100"
+                    type="range" min="1" max="100"
                     value="{{ ast_experience or 50 }}"
                     style="width: 100%">
             </td>
@@ -64,12 +53,25 @@
                     (Higher value means: The more matching skills in
                     Candidate's profile with the Job the better)
                 </div>
+
+                <input name="{{ const.http.param.ast.SKILLS }}"
+                    type="range" min="1" max="100"
+                    value="{{ ast_skills or 50 }}"
+                    style="width: 100%">
             </td>
 
             <td>
-                <input name="{{ const.http.param.ast.SKILLS }}"
-                    type="range" min="0" max="100"
-                    value="{{ ast_skills or 50 }}"
+                <label for="{{ const.http.param.ast.ENGLISH }}">
+                    English level importance
+                </label>
+
+                <div class="text-secondary text-sm">
+                    (Higher value means: The higher the level of English the better)
+                </div>
+
+                <input name="{{ const.http.param.ast.ENGLISH }}"
+                    type="range" min="1" max="100"
+                    value="{{ ast_english or 50 }}"
                     style="width: 100%">
             </td>
         </tr>

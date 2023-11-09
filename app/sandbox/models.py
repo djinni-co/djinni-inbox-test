@@ -125,6 +125,15 @@ class JobPosting(models.Model):
         THREE = "3y", _("3 years")
         FIVE = "5y", _("5 years")
 
+    def exp_years_int (self):
+        return {
+            self.Experience.ZERO:  0,
+            self.Experience.ONE:   1,
+            self.Experience.TWO:   2,
+            self.Experience.THREE: 3,
+            self.Experience.FIVE:  5,
+        }[ self.exp_years ]
+
     class RemoteType(models.TextChoices):
         OFFICE = "office", _("Office Work")
         PARTLY_REMOTE = "partly_remote", _("Hybrid Remote")

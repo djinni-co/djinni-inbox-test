@@ -38,6 +38,7 @@ class inbox:
                 SALARY     = 'ast-salary'
                 EXPERIENCE = 'ast-experience'
                 SKILLS     = 'ast-skills'
+                ENGLISH    = 'ast-english'
 
     class paging:
         PER_PAGE = paging.INBOX
