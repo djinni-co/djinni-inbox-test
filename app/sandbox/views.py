@@ -102,13 +102,11 @@ def _calculate_experiance_value(c_exp: float, required_exp: str) -> float:
     return coeff
 
 
-def _calcualte_prog_lang_coefficient(
-    candidate: Candidate, vacancy: JobPosting
-) -> float:
-    primary_keyword: bool = vacancy.primary_keyword == candidate.primary_keyword
-    secondary_keyword: bool = vacancy.secondary_keyword == candidate.secondary_keyword
-
-    if vacancy.secondary_keyword:
+def _calcualte_prog_lang_coefficient(candidate: Candidate, job: JobPosting) -> float:
+    primary_keyword: bool = job.primary_keyword == candidate.primary_keyword
+    secondary_keyword: bool = job.secondary_keyword == candidate.secondary_keyword
+ 
+    if job.secondary_keyword:
         if secondary_keyword:
             return 1.1
         else:
