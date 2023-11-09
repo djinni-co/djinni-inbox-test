@@ -1,10 +1,13 @@
 import os
 
+import time
+
+import numpy as np
 from django.shortcuts import render
 
 from .analyzator import Analyzator
 
-from .models import Recruiter, MessageThread
+from .models import Recruiter, MessageThread, JobPosting
 
 # Hardcode for logged in as recruiter
 RECRUITER_ID = 125528
@@ -14,6 +17,7 @@ analyzator = Analyzator()
 analyzator.read_faiss_index(faiss_index_path)
 
 TEST_THREAD_INDEX = 0  # needed to select job posting for test
+TEST_JOB_INDEX = 4  # needed to select job posting for test
 
 def inbox(request):
     recruiter = Recruiter.objects.get(id = RECRUITER_ID)
@@ -31,7 +35,6 @@ def inbox(request):
     # Inbox based on recruiter-candidate communication
     # but we need to select job for candidates search
     selected_job = threads[TEST_THREAD_INDEX].job
-    print("SELECTED JOB: \n", selected_job.long_description)
     ####
 
     distances, indices = analyzator.faiss_search(selected_job, k=1000)
@@ -43,6 +46,41 @@ def inbox(request):
     _context = { 'title': "Djinni - Inbox", 'recruiter': recruiter, 'threads': threads }
 
     return render(request, 'inbox/chats.html', _context)
+
+
+def plot(request):
+    print("computationally intensive process")
+
+    all_jobs = JobPosting.objects.all()
+    test_job = all_jobs[TEST_JOB_INDEX]
+
+    job_threads = MessageThread.objects.filter(job=test_job)
+
+    candidate_strs = []
+    candidate_meta_text = []
+    for th_index, thread in enumerate(job_threads):
+        candidate_strs.append(analyzator.model_to_string(thread.candidate))
+        candidate_meta_text.append(f"candidate: {thread.candidate.primary_keyword} <br>  min salary {thread.candidate.salary_min}")
+
+    start_time = time.time()
+    cand_embeddings = analyzator.hg_sentence_model.encode(candidate_strs, convert_to_tensor=True)
+    job_embeddings = analyzator.hg_sentence_model.encode(analyzator.model_to_string(test_job), convert_to_tensor=True)
+    print("exec time", time.time() - start_time)
+
+    cand_pca, job_pca = analyzator.PCA(cand_embeddings, job_embeddings)
+
+    pcas = np.concatenate([job_pca, cand_pca]) # job is first
+    x = list(pcas[:, 0])
+    y = list(pcas[:, 1])
+    z = list(pcas[:, 2])
+
+    colors = [[0, 255, 0]] + [[255, 0, 0]] * cand_pca.shape[0]
+
+    meta_text = [f"Job: {test_job.position}"] + candidate_meta_text
+
+    _context = { 'title': "Djinni - Plot", "x": x, "y": y, "z": z, "colors": colors, "meta_text":meta_text}
+
+    return render(request, 'plots/plot.html', _context)
 
 def inbox_thread(request, pk):
     thread = MessageThread.objects.get(id = pk)

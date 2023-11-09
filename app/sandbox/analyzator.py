@@ -2,7 +2,9 @@ import time
 import json
 import datetime
 import faiss
+
 from sentence_transformers import SentenceTransformer, util
+from sklearn import decomposition
 
 from django.db import models
 from .models import MessageThread, JobPosting
@@ -12,6 +14,14 @@ class Analyzator:
         self.hg_sentence_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
         self.faiss_index = None
 
+    def PCA(self, cand_embeddings, job_embedding):
+        pca = decomposition.PCA(n_components=3)
+
+        cand_pca = pca.fit_transform(cand_embeddings.numpy())
+        job_pca = pca.transform(job_embedding.numpy()[None])
+
+        return cand_pca, job_pca
+
     def get_candidate_job_similarity(self, thread: MessageThread):
         messages = thread.message_set.all().order_by('created')
 
@@ -20,7 +30,7 @@ class Analyzator:
         # Should I add messages here?
         acc_candidate_str += " ".join(msg.body for msg in messages if msg.body is not None)
 
-        job_str = self.convert_model_to_string(thread.job)
+        job_str = self.model_to_string(thread.job)
 
         emb1 = self.hg_sentence_model.encode(acc_candidate_str, convert_to_tensor=True)
         emb2 = self.hg_sentence_model.encode(job_str, convert_to_tensor=True)
@@ -29,8 +39,8 @@ class Analyzator:
         return round(similarity.numpy()[0][0], 3)
 
     # utils
-    def convert_model_to_string(self, model: models.Model):
-        model_str = str(model.__dict__)
+    def model_to_string(self, model: models.Model):
+        model_str = str(Analyzator.model_to_dict(model))
 
         # primitive preprocess
         model_str.replace("\n", " ")
@@ -57,7 +67,7 @@ class Analyzator:
         self.faiss_index = faiss.read_index(faiss_index_path)
 
     def faiss_search(self,  job: models.Model, k=10):
-        job_str = self.convert_model_to_string(job)
+        job_str = self.model_to_string(job)
 
         embeddings = self.hg_sentence_model.encode(job_str, convert_to_tensor=True)
         D, I = self.faiss_index.search(embeddings.reshape(1, embeddings.shape[0]), k)
@@ -70,7 +80,7 @@ class Analyzator:
 
         for index, thread in enumerate(threads):
             messages = thread.message_set.all().order_by('created')
-            acc_candidate_str = self.convert_model_to_string(thread.candidate)
+            acc_candidate_str = self.model_to_string(thread.candidate)
 
             # Should I add messages here? (message is changeable data)
             acc_candidate_str += " ".join(msg.body for msg in messages if msg.body is not None)
