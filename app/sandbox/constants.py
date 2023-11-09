@@ -1,7 +1,7 @@
 import re
 
 class paging:
-    INBOX = 5
+    INBOX = 20
 
 class templates:
     class html:

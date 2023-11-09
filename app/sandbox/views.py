@@ -54,17 +54,17 @@ def _apply_advanced_sorting (threads, weights):
         thr.scores['skills'] = 0
 
         thr.scores['total'] = (
-              thr.scores['experience'] * weights['experience']
-            + thr.scores['skills']     * weights['skills']
-            + thr.scores['english']    * weights['english']
+              thr.scores['experience'] / len(thr.scores) * weights['experience']
+            + thr.scores['skills']     / len(thr.scores) * weights['skills']
+            + thr.scores['english']    / len(thr.scores) * weights['english']
 
             # the higher the salary the higher should be the penalty
-            - thr.scores['salary']     * weights['salary']
-        )
+            - thr.scores['salary']     / len(thr.scores) * weights['salary']
+        ) * len(thr.scores)
 
     # from the highest score to the lowest
     return sorted(thrs_ext, key = lambda v: v.scores['total'],
-                     reverse = True)
+                  reverse = True)
 
 def inbox(req):
     context = { 'const': C.inbox, 'min': min, 'int': int }
