@@ -39,9 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    'sandbox.apps.SandboxConfig',
-    "django_jinja",
+	'sandbox.apps.SandboxConfig',
+	"django_jinja",
 ]
 
 MIDDLEWARE = [
