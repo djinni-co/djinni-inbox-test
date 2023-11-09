@@ -35,6 +35,16 @@ class EnglishLevel(models.TextChoices):
     UPPER = ("upper", "Upper-Intermediate")
     FLUENT = ("fluent", "Advanced/Fluent")
 
+    def __int__ (self):
+        return [
+            self.NONE,
+            self.BASIC,
+            self.PRE,
+            self.INTERMEDIATE,
+            self.UPPER,
+            self.FLUENT,
+        ].index(self)
+
 class Candidate(models.Model):
     USERTYPE = "candidate"
 
@@ -67,6 +77,10 @@ class Candidate(models.Model):
     english_level = models.CharField(
         max_length=80, blank=True, default="", choices=EnglishLevel.choices
     )
+
+    def english_level_obj (self):
+        return EnglishLevel(self.english_level)
+
     skills_cache = models.TextField(blank=True, default="")
     location = models.CharField(max_length=255, blank=True, default="", null=True)
     country_code = models.CharField(
@@ -168,6 +182,10 @@ class JobPosting(models.Model):
     english_level = models.CharField(
         max_length=15, blank=True, default="", choices=EnglishLevel.choices
     )
+
+    def english_level_obj (self):
+        return EnglishLevel(self.english_level)
+
     domain = models.CharField(max_length=20, blank=True, default="")
     is_parttime = models.BooleanField(default=False, db_index=True)
     has_test = models.BooleanField(default=False, db_index=True)

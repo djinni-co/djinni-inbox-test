@@ -21,7 +21,9 @@
                             {% with c_sal = candidate.salary_min,
                                     j_sal = thread.job.salary_max,
                                     c_exp = candidate.experience_years,
-                                    j_exp = thread.job.exp_years_int()
+                                    j_exp = thread.job.exp_years_int(),
+                                    c_eng = int(candidate.english_level_obj()),
+                                    j_eng = int(thread.job.english_level_obj())
                             %}
 							    <div class="text-secondary">
 								    <div>
@@ -40,17 +42,20 @@
                                         </span>
 								    </div>
 								    <div>
-                                        <span class="badge bg-warning">
+                                        <span class="badge bg-{{
+                                             'success' if c_eng >= j_eng else
+                                             'warning' if c_eng >= j_eng - 1 else 'danger'
+                                        }}">
 									        {{ candidate.english_level }}
                                         </span>
 
-                                        <span class="badge bg-warning">
+                                        <span class="badge bg-secondary">
                                             {{ candidate.country_code }}
                                         </span>
 
                                         {% if candidate.location %}
                                             {% for loc in candidate.location.split(',') %}
-                                                <span class="badge bg-warning">
+                                                <span class="badge bg-secondary">
                                                     {{ loc }}
                                                 </span>
                                             {% endfor %}
@@ -62,7 +67,7 @@
 
                         {% if thread.scores %}
                             <small class="badge bg-dark">
-                                Total Score:
+                                Weighted Score:
                                 {{ '%.2f'|format(thread.scores['total']) }}
                             </small>
 

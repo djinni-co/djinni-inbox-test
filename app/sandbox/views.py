@@ -4,18 +4,14 @@ from django.shortcuts import render, reverse, get_object_or_404
 
 from . import constants as C
 
-from .models import Recruiter, MessageThread, JobPosting
+from .models import Recruiter, MessageThread, JobPosting, EnglishLevel
 
 # Hardcode for logged in as recruiter
 RECRUITER_ID = 125528
 
 def _apply_advanced_sorting (threads, weights):
-    # FIXME: delete the limitation
-    # threads = threads.filter(job_id = 550484)
-
     window = {
        'partition_by': [F('job_id')],
-       # 'order_by': F('job_id').asc(),
     }
 
     thrs_ext = threads.annotate(
@@ -34,14 +30,6 @@ def _apply_advanced_sorting (threads, weights):
         cand_max_exp = Window(
             expression = Max('candidate__experience_years'), **window,
         ),
-
-        # exp_score = Window(
-        #     expression = (
-        #           F('candidate__experience_years')
-        #         - F('cand_min_exp')
-        #     ), **window,
-        # ),
-        # # (cand.experience_years - :exp_min)/:exp_range
     )
 
     for thr in thrs_ext:
@@ -57,15 +45,21 @@ def _apply_advanced_sorting (threads, weights):
             thr.candidate.salary_min - thr.cand_min_sal
         ) / sal_range
 
-        # TODO: Skills & English measuring is NIY
-        thr.scores['skills'] = weights['skills'] * 0
-        thr.scores['english'] = weights['english'] * 0
+        # Divide by 5 since there are levels from 0 to 5 (including)
+        thr.scores['english'] = int(
+            EnglishLevel(thr.candidate.english_level)
+        ) / 5
+
+        # TODO: Skills measuring is NIY
+        thr.scores['skills'] = 0
 
         thr.scores['total'] = (
               thr.scores['experience'] * weights['experience']
-            + thr.scores['skills'] * weights['skills']
-            + thr.scores['english'] * weights['english']
-            - thr.scores['salary'] * weights['salary']
+            + thr.scores['skills']     * weights['skills']
+            + thr.scores['english']    * weights['english']
+
+            # the higher the salary the higher should be the penalty
+            - thr.scores['salary']     * weights['salary']
         )
 
     # from the highest score to the lowest
@@ -73,7 +67,7 @@ def _apply_advanced_sorting (threads, weights):
                      reverse = True)
 
 def inbox(req):
-    context = { 'const': C.inbox, 'min': min }
+    context = { 'const': C.inbox, 'min': min, 'int': int }
 
     get_params = QueryDict('', mutable=True)
     get_params.update(req.GET)
