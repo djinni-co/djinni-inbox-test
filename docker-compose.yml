@@ -3,10 +3,10 @@ services:
   web:
     build: .
     ports:
-      - "8000:${PORT:-8000}"
+      - "8081:${PORT:-8081}"
     volumes:
       - .:/app
-    command: python app/manage.py runserver 0.0.0.0:8000
+    command: python app/manage.py runserver 0.0.0.0:8081
     environment:
       - DEBUG=True
       - POSTGRES_DB=${POSTGRES_DB}
