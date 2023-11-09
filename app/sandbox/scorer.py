@@ -17,37 +17,41 @@ class InboxScorer(abc.ABC):
 
     @staticmethod
     def parse_candidate_keywords(candidate: Candidate) -> list[str]:
-        keywords = simple_preprocess(candidate.position, deacc=True) + simple_preprocess(candidate.primary_keyword)
+        dataset: list[str] = [candidate.position, candidate.primary_keyword]
         if candidate.skills_cache:
-            keywords.extend(simple_preprocess(candidate.skills_cache, deacc=True))
+            dataset.append(candidate.skills_cache)
         if candidate.moreinfo:
-            keywords.extend(simple_preprocess(candidate.moreinfo, deacc=True))
+            dataset.append(candidate.moreinfo)
         if candidate.looking_for:
-            keywords.extend(simple_preprocess(candidate.looking_for))
+            dataset.append(candidate.looking_for)
         if candidate.highlights:
-            keywords.extend(simple_preprocess(candidate.highlights))
+            dataset.append(candidate.highlights)
 
-        return list(set(keywords))
+        return list(set(simple_preprocess(' '.join(dataset), deacc=True)))
 
     @staticmethod
     def parse_job_keywords(job: JobPosting) -> list[str]:
-        keywords = simple_preprocess(job.position, deacc=True) + simple_preprocess(job.primary_keyword)
+        dataset: list[str] = [job.position, job.primary_keyword]
         if job.secondary_keyword:
-            keywords.extend(simple_preprocess(job.secondary_keyword))
+            dataset.append(job.secondary_keyword)
 
-        return list(set(keywords))
+        return list(set(simple_preprocess(' '.join(dataset), deacc=True)))
 
     @staticmethod
     def base_score(job: JobPosting, candidate: Candidate) -> float:
-        score = 0
+        score: float = 0.0
+        scoring_settings = settings.SCORING_SETTINGS
         candidate_eng = get_choice_index(EnglishLevel, candidate.english_level) + 1
         desired_eng = get_choice_index(EnglishLevel, job.english_level) + 1
 
         score += (candidate.experience_years - 0 if job.exp_years == JobPosting.Experience.ZERO
-                  else int(job.exp_years[:-1])) / 10 * settings.SCORING_SETTINGS.SCORE_EXP_WEIGHT
-        score += (candidate_eng - desired_eng) / 10 * settings.SCORING_SETTINGS.SCORE_ENG_WEIGHT
-        score += -settings.SCORING_SETTINGS.SCORE_SALARY_WEIGHT if candidate.salary_min > job.salary_max \
-            else settings.SCORING_SETTINGS.SCORE_SALARY_WEIGHT if candidate.salary_min < job.salary_min else 0
+                  else int(job.exp_years[:-1])) / 10 * scoring_settings.SCORE_EXP_WEIGHT
+        score += (candidate_eng - desired_eng) / 10 * scoring_settings.SCORE_ENG_WEIGHT
+        score += -scoring_settings.SCORE_SALARY_WEIGHT if candidate.salary_min > job.salary_max \
+            else scoring_settings.SCORE_SALARY_WEIGHT if candidate.salary_min < job.salary_min else 0
+
+        if candidate.uninterested_company_types:
+            score -= scoring_settings.SCORE_COMPANY_TYPE_WEIGHT if job.company_type in candidate.uninterested_company_types.split(', ') else 0
 
         return score
 

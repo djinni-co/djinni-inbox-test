@@ -35,6 +35,7 @@ class ScoringSettings(BaseSettings):
     SCORE_EXP_WEIGHT: float
     SCORE_ENG_WEIGHT: float
     SCORE_SALARY_WEIGHT: float
+    SCORE_COMPANY_TYPE_WEIGHT: float
 
     class Config:
         env_file = '../.env'
