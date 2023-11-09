@@ -58,7 +58,8 @@ def score_thread(thread):
                            description=f"Considering thread date"))
 
     if job.english_level and candidate.english_level:
-        scoring.add(SimpleRule(score=ENGLISH_WEIGTH.get(job.english_level),
+        scoring.add(SimpleRule(score=lower_distance(ENGLISH_WEIGTH.get(candidate.english_level),
+                                                    ENGLISH_WEIGTH.get(job.english_level)),
                                description="Considering English level"))
 
     if job.location and candidate.location:
