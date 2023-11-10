@@ -148,6 +148,7 @@ class JobPosting(models.Model):
     secondary_keyword = models.CharField(max_length=50, blank=True, default="")
     long_description = models.TextField(blank=True, default='')
     # Skills
+    #TODO: add primary and additional skills many-to-many field
     extra_keywords = models.CharField(max_length=250, blank=True, default="")
     location = models.CharField(max_length=250, blank=True, default="")
     country = models.CharField(max_length=250, blank=True, default="")
@@ -175,7 +176,7 @@ class JobPosting(models.Model):
 
     # Counts
     unread_count = models.IntegerField(blank=False, default=0)
-    search_count = models.IntegerField(blank=False, default=0)  # unused, how many candidates for this job
+    search_count = models.IntegerField(blank=False, default=0)  # unused, how many candidates for this job TODO: use it
     views_count = models.IntegerField(blank=False, default=0)
     applications_count = models.IntegerField(blank=False, default=0)
     sent_count = models.IntegerField(blank=False, default=0)
