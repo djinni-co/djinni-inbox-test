@@ -215,6 +215,5 @@ class CalculateSuitabilityTest(TestCase):
         self.thread.job.primary_keyword_weight = 1.2
         self.thread.job.english_level_weight = 1.3
 
-
         coeff = _calculate_candidate_suitability(self.thread)
         self.assertEqual(coeff, 5.2)
