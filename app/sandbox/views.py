@@ -56,8 +56,6 @@ def _calculate_candidate_suitability(thread: MessageThread) -> float:
     location: float = _calculate_location_coefficient(
         thread.job.location, thread.candidate.location
     )
-    # JobPosting model could be updated
-    # Recruiter could choose up to 10 different categories and their `weight`
     default_coeff = 1.0
     # coeff times category weight
     return round(
