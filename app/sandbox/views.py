@@ -45,16 +45,14 @@ def inbox_thread(request, pk):
 
 
 def _calculate_candidate_suitability(thread: MessageThread) -> float:
-    prog_lang: float = _calcualte_prog_lang_coefficient(thread.candidate, thread.job)
-    exp: float = _calculate_experiance_value(
+    prog_lang: float = _calculate_prog_lang_coefficient(thread.candidate, thread.job)
+    exp: float = _calculate_experiance_coefficient(
         thread.candidate.experience_years, thread.job.exp_years
     )
     english_level: float = _calculate_english_level_coefficient(
         thread.candidate.english_level, thread.job.english_level
     )
-    salary: float = _calculate_salary_coefficient(
-        thread.candidate.salary_min, thread.job
-    )
+    salary: float = _calculate_salary_coefficient(thread.candidate, thread.job)
     location: float = _calculate_location_coefficient(
         thread.job.location, thread.candidate.location
     )
@@ -76,7 +74,7 @@ def _calculate_candidate_suitability(thread: MessageThread) -> float:
     )
 
 
-def _calculate_experiance_value(c_exp: float, required_exp: str) -> float:
+def _calculate_experiance_coefficient(c_exp: float, required_exp: str) -> float:
     """Experiance coefficint calculation."""
     job_exp_map = {
         "no_exp": 0,
@@ -86,37 +84,43 @@ def _calculate_experiance_value(c_exp: float, required_exp: str) -> float:
         "5y": 60,
     }
 
-    required_job_experince_in_month = job_exp_map.get(required_exp, 0)
+    required_experince_in_month = job_exp_map.get(required_exp, 0)
     candidate_experince_in_month = int(c_exp * 12)
     job_and_candidate_exp_gap = (
-        required_job_experince_in_month - candidate_experince_in_month
+        required_experince_in_month - candidate_experince_in_month
     )
     coeff = 1.0
     if job_and_candidate_exp_gap < 0:
         coeff = round(1.0 + (abs(job_and_candidate_exp_gap) * 0.01), 2)
     elif job_and_candidate_exp_gap > 0:
         coeff = round(1.0 - (job_and_candidate_exp_gap * 0.01), 2)
-    elif not required_job_experince_in_month and candidate_experince_in_month:
+    elif not required_experince_in_month and candidate_experince_in_month:
         coeff = 1.0
 
     return coeff
 
 
-def _calcualte_prog_lang_coefficient(candidate: Candidate, job: JobPosting) -> float:
-    primary_keyword: bool = job.primary_keyword == candidate.primary_keyword
-    secondary_keyword: bool = job.secondary_keyword == candidate.secondary_keyword
- 
+def _calculate_prog_lang_coefficient(candidate: Candidate, job: JobPosting) -> float:
+    primary_keyword_match: bool = job.primary_keyword == candidate.primary_keyword
+    secondary_keyword_match: bool = job.secondary_keyword == candidate.secondary_keyword
+    base_coeff = 0.5
+
+    if primary_keyword_match:
+        base_coeff += 0.25
+
     if job.secondary_keyword:
-        if secondary_keyword:
-            return 1.1
+        if secondary_keyword_match:
+            base_coeff += 0.125
         else:
-            return 0.9
+            base_coeff -= 0.125
 
-    return 1.0 if primary_keyword else 0.5
+    return base_coeff
 
 
-def _calculate_salary_coefficient(candidate: int, job: JobPosting) -> float:
-    if candidate not in [job.salary_min, job.salary_max]:
+def _calculate_salary_coefficient(candidate: Candidate, job: JobPosting) -> float:
+    start_range = job.salary_min or 0
+    stop_range = job.salary_max or 100000
+    if candidate.salary_min not in range(start_range, stop_range + 1):
         # means that candidate wants more that vacancy can offer
         return 0.5
     return 1.0
