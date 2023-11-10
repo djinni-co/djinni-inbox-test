@@ -3,7 +3,9 @@
 {% block content %}
 	<div class="container pt-3">
 		<h1 class="mb-3">Inbox</h1>
-
+        <div class="row" align="right">
+                <a href="{{ url('sort_by_score') }}">Sort by candidate score</a>
+        </div>
 		{% for thread in threads %}
 			{% set last_message = thread.last_message %}
 			{% set candidate = thread.candidate %}
