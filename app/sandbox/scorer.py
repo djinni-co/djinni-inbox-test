@@ -56,9 +56,8 @@ class WeightCandidateScorer(CandidateScorer):
 
     def compute(self, candidate: Candidate, job: JobPosting) -> float:
         score = SCORE_MIN
-        job_exp_years = 0 if job.exp_years == JobPosting.Experience.ZERO else int(job.exp_years[:-1])
 
-        score += self._compute_experience(candidate.experience_years, job_exp_years)
+        score += self._compute_experience(candidate.experience_years, job.get_job_experience())
         score += self._compute_english(candidate.english_level, job.english_level)
         score += self._compute_salary(candidate.salary_min, job.salary_min, job.salary_max)
 

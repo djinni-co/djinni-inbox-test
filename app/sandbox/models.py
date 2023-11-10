@@ -191,6 +191,9 @@ class JobPosting(models.Model):
     published = models.DateTimeField(blank=True, null=True, db_index=True)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
 
+    def get_job_experience(self) -> int:
+        return 0 if self.exp_years == JobPosting.Experience.ZERO else int(self.exp_years[:-1])
+
 
 class Action(str, enum.Enum):
     MESSAGE = ''

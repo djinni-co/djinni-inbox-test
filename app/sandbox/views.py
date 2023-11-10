@@ -53,6 +53,7 @@ def score_threads(threads: list[MessageThread]) -> list[tuple[MessageThread, flo
     for thread in threads:
         similarity_score = similarity_scorer.compute(thread.candidate, thread.job)
         weight_score = weight_scorer.compute(thread.candidate, thread.job)
-        scores.append((thread, max(SCORE_MIN, min(SCORE_MAX, similarity_score + weight_score))))
+        total_score = max(SCORE_MIN, min(SCORE_MAX, similarity_score + weight_score))
+        scores.append((thread, total_score * 10))
 
     return scores
