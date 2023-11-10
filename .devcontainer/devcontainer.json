@@ -1,0 +1,30 @@
+{
+    "name": "backend",
+    "service": "web",
+    "runServices": [
+        "web"
+    ],
+    "workspaceFolder": "/app",
+    "dockerComposeFile": [
+        "/home/y.dmytrenko/projects/djinni-inbox-test/docker-compose.yml",
+        "/home/y.dmytrenko/projects/djinni-inbox-test/docker-compose.override.yml"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python"
+            ]
+        }
+    },
+    "forwardPorts": [
+        80,
+        5000,
+        8000
+    ],
+    "remoteEnv": {
+        // This also sets the local mongo db to testEve..
+        "TESTING_IN_DOCKER": "1"
+    },
+    // Stop containers after you quit VSCode
+    "shutdownAction": "stopCompose"
+}
