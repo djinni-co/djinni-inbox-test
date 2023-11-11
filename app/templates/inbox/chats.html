@@ -14,11 +14,18 @@
 						<div class="col-sm-3">
 							<div class="row">
 								<div class="col-auto">
-								{% if thread.is_anonymous or not thread.candidate.picture_url %}
-										<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover" src="https://p.djinni.co/static/i/default-userpic@2x.png" alt="">
-								{% else %}
-										<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover" src="{{ thread.candidate.picture_url }}" alt="">
-								{% endif %}
+				                                    <div>
+				
+				                                        {% if thread.is_anonymous or not thread.candidate.picture_url %}
+				                                        <img class="rounded-circle" width="30px" height="30px" style="object-fit: cover"
+				                                             src="https://thepublicvoice.org/wp-content/uploads/2019/10/TPV-people-hp.jpg"
+				                                             alt="">
+				                                        {% else %}
+									    
+				                                        <img class="rounded-circle" width="30px" height="30px" style="object-fit: cover"
+				                                             src="{{ thread.candidate.picture_url }}" alt="">
+				                                        {% endif %}
+				                                    </div>
 								</div>
 								<div class="col">
 									<small>
