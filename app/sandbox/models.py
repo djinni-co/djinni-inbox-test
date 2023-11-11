@@ -295,6 +295,7 @@ class MessageThread(models.Model):
     last_seen_recruiter = models.DateTimeField(null=True)
     last_seen_candidate = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
+    scores = models.JSONField(null=True, blank=True)
 
     objects = MessageThreadQuerySet.as_manager()
 
