@@ -50,7 +50,7 @@
 	          <a class="nav-link" href="#">Candidates</a>
 	        </li>
 	        <li class="nav-item">
-	          <a class="nav-link" href="#">Jobs</a>
+				<a class="nav-link {% if request.path_info == url('plot') %}active{% endif %}" href="{{ url('plot') }}">Plot</a>
 	        </li>
 					<li class="nav-item">
 	          <a class="nav-link" href="#">Salaries</a>

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+<div class="row">
+    <div class="col-sm-2">
+
+            <p>Job</p>
+
+            <p>{{job_long_description}}</span>.</p>
+
+    </div>
+
+	<div class="col-sm-8">
+
+    <div id="scatter-plot" style="width: 100%; height: 100vh;"></div>
+
+    <script>
+        var data = [{
+            x: {{x}},
+            y: {{y}},
+            z: {{z}},
+            mode: 'markers',
+            type: 'scatter3d',
+
+            marker: {
+                color: {{colors}},
+                size: 10,
+                opacity: 0.8,
+            },
+
+            text: {{meta_text | safe}},
+        }];
+
+        // Layout configuration for the plot
+        var layout = {
+            scene: {
+                camera: {
+                    eye: { x: -1, y: 0, z: -0.64 },
+                },
+            },
+            width: window.innerWidth,
+            height: window.innerHeight,
+        };
+
+        // Create the 3D scatter plot
+        Plotly.newPlot('scatter-plot', data, layout);
+
+        // Update the plot size when the window is resized
+        window.addEventListener('resize', function () {
+            Plotly.update('scatter-plot', {
+                width: window.innerWidth,
+                height: window.innerHeight,
+            });
+        });
+
+
+
+    </script>
+    </div>
+
+
+
+</div>
+
+</body>
+{% endblock content %}
