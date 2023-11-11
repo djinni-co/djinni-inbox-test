@@ -47,10 +47,10 @@
 	          <a class="nav-link {% if request.path_info == url('inbox') %}active{% endif %}" href="{{ url('inbox') }}">Inbox</a>
 	        </li>
 	        <li class="nav-item">
-	          <a class="nav-link" href="#">Candidates</a>
+	          <a class="nav-link {% if request.path_info.startswith(url('job_candidates', '_').rstrip('_/')) and request.path_info != url('jobs') %}active{% endif %}" href="#">Candidates</a>
 	        </li>
 	        <li class="nav-item">
-	          <a class="nav-link" href="#">Jobs</a>
+	          <a class="nav-link {% if request.path_info == url('jobs') %}active{% endif %}" href="{{ url('jobs') }}">Jobs</a>
 	        </li>
 					<li class="nav-item">
 	          <a class="nav-link" href="#">Salaries</a>

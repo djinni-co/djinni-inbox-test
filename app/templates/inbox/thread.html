@@ -61,6 +61,9 @@
 								Email: <a href="mailto:{{ candidate.email }}">{{ candidate.email }}</a>
 							</div>
 						{% endif %}
+						<div>
+							<p><strong>Score: {{ score }} points</strong></p>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -102,7 +105,7 @@
 							{% endif %}
 
 							{% if message.job %}
-								<strong>Job posting:</strong> {{ message.job.position }}
+								<strong>Job posting:</strong> <a href="{{ url('job_candidates', message.job.id) }}">{{ message.job.position }}</a>
 							{% endif %}
 						</div>
 					</div>

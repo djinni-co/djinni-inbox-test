@@ -3,7 +3,8 @@ from django.db.models import Count, Q
 from django.shortcuts import render
 
 
-from .models import Recruiter, MessageThread
+from .models import JobPosting, Recruiter, MessageThread
+from .scoring_algorithm import calc_score
 
 # Hardcode for logged in as recruiter
 RECRUITER_ID = 125528
@@ -26,6 +27,31 @@ def inbox_thread(request, pk):
         'thread': thread,
         'messages': messages,
         'candidate': thread.candidate,
+        'score': calc_score(thread),
     }
 
     return render(request, 'inbox/thread.html', _context)
+
+
+def jobs_list(request):
+    jobs = JobPosting.objects.filter(recruiter_id=RECRUITER_ID).all()
+    _context = {'title': 'Djinni - Jobs', 'jobs': jobs}
+
+    return render(request, 'jobs/job_post.html', _context)
+
+
+def job_candidates(request, pk):
+    job = JobPosting.objects.get(id=pk, recruiter_id=RECRUITER_ID)
+
+    threads_data = [
+        {'thread': thread, 'score': calc_score(thread)}
+        for thread in job.messagethread_set.all()
+    ]
+
+    _context = {
+        'title': 'Djinni - Candidates',
+        'job': job,
+        'threads_data': sorted(threads_data, key=lambda x: x['score'], reverse=True),
+    }
+
+    return render(request, 'jobs/job.html', _context)
