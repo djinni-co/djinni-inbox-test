@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<div class="container pt-5 pb-5">
+		<div class="row">
+			<div class="col-sm-12">
+				<div class="card mb-12">
+					<div class="card-body">
+						<header>
+							<div class="row mb-3">
+								<div class="col">
+									<strong>
+										{{ job.position }}, ${{ job.salary_min }} - ${{ job.salary_max }}
+									</strong>
+								</div>
+							</div>
+							<div class="row mb-3">
+								<div class="col-auto">
+									<strong>Category: </strong> {{job.primary_keyword}}{% if job.secondary_keyword %}, {{job.secondary_keyword}}{% endif %}
+								</div>
+								<div class="col-auto">
+									<strong>
+										Domain: {{ job.domain }}
+									</strong>
+								</div>
+								<div class="col-auto">
+									<strong>
+										Experience: {{ job.get_exp_years_display() }}
+									</strong>
+								</div>
+								<div class="col-auto">
+									<strong>
+										 English: {{ job.get_english_level_display() }}
+									</strong>
+								</div>
+							</div>
+						</header>
+
+						{% if job.long_description %}
+							<div class="mb-2">
+								{{ job.long_description }}
+							</div>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="md-3">
+			<h3>Candidates:</h3>
+		</div>
+		<div class="col-sm-12">
+			{% if threads_data|length == 0 %}
+				<h4>There is no suitable candidates 😭</h4>
+			{% endif %}
+			{% for threads_data in threads_data %}
+				{% set thread = threads_data.thread %}
+				{% set candidate = thread.candidate %}
+
+				<div class="card mb-3">
+					<div class="card-header">
+						<div>
+						{{ candidate.name }}, {{candidate.position}}
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="row mb-3">
+							<div class="mb-3">
+								<strong>Score: </strong> {{ threads_data.score }} points
+							</div>
+							<div>
+								${{ candidate.salary_min }}, {{ candidate.experience_years }} years of experience, {{ candidate.get_english_level_display() }}
+							</div>
+							<div>
+								 <strong>Location: </strong> {{ candidate.get_country_code_display() }}{% if candidate.location %}, {{ candidate.location }}{% endif %}
+							</div>
+							{% if candidate.can_relocate %}
+								<div>Ready to relocate</div>
+							{% endif %}
+							{% if candidate.domain_zones or candidate.uninterested_company_types %}
+								<div>
+									<strong>Not interested: </strong> {{candidate.domain_zones or ''}}, {{ candidate.uninterested_company_types or '' }}
+								</div>
+							{% endif %}
+							<div>
+								<strong>Category: </strong> {{candidate.primary_keyword}}{% if candidate.secondary_keyword %}, {{candidate.secondary_keyword}}{% endif %}
+							</div>
+							<div>
+								<strong>Skills:</strong> {{ candidate.skills_cache }}
+							</div>
+						</div>
+						<a href="{{ url('inbox_thread', thread.id) }}"><small>Open thread</small></a>
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+	</div>
+
+{% endblock content %}
