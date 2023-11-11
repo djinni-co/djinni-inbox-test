@@ -21,10 +21,12 @@
 				                                             src="https://thepublicvoice.org/wp-content/uploads/2019/10/TPV-people-hp.jpg"
 				                                             alt="">
 				                                        {% else %}
-									    
 				                                        <img class="rounded-circle" width="30px" height="30px" style="object-fit: cover"
 				                                             src="{{ thread.candidate.picture_url }}" alt="">
 				                                        {% endif %}
+				                                    </div>
+				                                    <div style="position: absolute; bottom: 0; ">
+				                                        <progress value="{{thread.score}}" min="0" max="10">{{thread.score}}%</progress>
 				                                    </div>
 								</div>
 								<div class="col">
