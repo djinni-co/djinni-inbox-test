@@ -16,7 +16,6 @@ faiss_index_path = "faissIDMap2.index"
 analyzator = Analyzator()
 analyzator.read_faiss_index(faiss_index_path)
 
-TEST_THREAD_INDEX = 0  # needed to select job posting for test
 TEST_JOB_INDEX = 4  # needed to select job posting for test
 
 def inbox(request):
@@ -34,10 +33,11 @@ def inbox(request):
 
     # Inbox based on recruiter-candidate communication
     # but we need to select job for candidates search
-    selected_job = threads[TEST_THREAD_INDEX].job
+    all_jobs = JobPosting.objects.all()
+    test_job = all_jobs[TEST_JOB_INDEX]
     ####
 
-    distances, indices = analyzator.faiss_search(selected_job, k=1000)
+    distances, indices = analyzator.faiss_search(test_job, k=1000)
 
     threads = filter(lambda x: x.candidate_id in indices, threads)
 
@@ -78,7 +78,7 @@ def plot(request):
 
     meta_text = [f"Job: {test_job.position}"] + candidate_meta_text
 
-    _context = { 'title': "Djinni - Plot", "x": x, "y": y, "z": z, "colors": colors, "meta_text":meta_text}
+    _context = { 'title': "Djinni - Plot", "x": x, "y": y, "z": z, "colors": colors, "meta_text":meta_text , "job_long_description": test_job.long_description}
 
     return render(request, 'plots/plot.html', _context)
 
@@ -86,7 +86,7 @@ def inbox_thread(request, pk):
     thread = MessageThread.objects.get(id = pk)
     messages = thread.message_set.all().order_by('created')
 
-    similarity = analyzator.get_candidate_job_similarity(thread)
+    similarity = analyzator.get_candidate_job_similarity(thread, thread.job)
 
     _context = {
         'pk': pk,

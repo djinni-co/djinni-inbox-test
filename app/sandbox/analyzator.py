@@ -13,6 +13,7 @@ class Analyzator:
     def __init__(self):
         self.hg_sentence_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
         self.faiss_index = None
+        self.init_distances = None
 
     def PCA(self, cand_embeddings, job_embedding):
         pca = decomposition.PCA(n_components=3)
@@ -22,20 +23,23 @@ class Analyzator:
 
         return cand_pca, job_pca
 
-    def get_candidate_job_similarity(self, thread: MessageThread):
+    def dist(self, emb1, emb2):
+        return util.pytorch_cos_sim(emb1, emb2)
+
+    def get_candidate_job_similarity(self, thread: MessageThread, selected_job: JobPosting):
         messages = thread.message_set.all().order_by('created')
 
-        acc_candidate_str = self.convert_model_to_string(thread.candidate)
+        acc_candidate_str = self.model_to_string(thread.candidate)
 
         # Should I add messages here?
         acc_candidate_str += " ".join(msg.body for msg in messages if msg.body is not None)
 
-        job_str = self.model_to_string(thread.job)
+        job_str = self.model_to_string(selected_job) #thread.job)
 
         emb1 = self.hg_sentence_model.encode(acc_candidate_str, convert_to_tensor=True)
         emb2 = self.hg_sentence_model.encode(job_str, convert_to_tensor=True)
 
-        similarity = util.pytorch_cos_sim(emb1, emb2)
+        similarity = self.dist(emb1, emb2)
         return round(similarity.numpy()[0][0], 3)
 
     # utils
