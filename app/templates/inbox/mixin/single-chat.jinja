@@ -18,6 +18,19 @@
 								<div>{{ candidate.name }}</div>
 							{% endif %}
 
+                            <span title="The Job's primary (secondary) technology/domain is {{ thread.job.primary_keyword }} ({{ thread.job.secondary_keyword }})"
+                                class="badge bg-{{
+                                    'success' if thread.scores['tech_sim'] >= 0.75 else
+                                    'warning' if thread.scores['tech_sim'] >= 0.5 else
+                                    'danger'
+                                }}">
+
+                                {{ candidate.primary_keyword }}
+                                {% if candidate.secondary_keyword %}
+                                    + {{ candidate.secondary_keyword }}
+                                {% endif %}
+                            </span>
+
                             {% with c_sal = candidate.salary_min,
                                     j_sal = thread.job.salary_max,
                                     c_exp = candidate.experience_years,
@@ -30,7 +43,8 @@
 									    <span title="The Job caps the salary at ${{ j_sal }}"
                                             class="badge bg-{{
                                              'success' if c_sal <= j_sal else 
-                                             'warning' if c_sal <= j_sal + max(0.3 * j_sal, 500) else 'danger'
+                                             'warning' if c_sal <= j_sal + max(0.3 * j_sal, 500) else
+                                             'danger'
                                         }}">
                                             ${{ candidate.salary_min }}
                                         </span>
@@ -38,7 +52,8 @@
                                         <span title="The Job requires {{ j_exp }} year(s) of experience"
                                             class="badge bg-{{
                                              'success' if c_exp >= j_exp else
-                                             'warning' if c_exp >= j_exp - max(0.3 * j_exp, 0.5) else 'danger'
+                                             'warning' if c_exp >= j_exp - max(0.3 * j_exp, 0.5) else
+                                             'danger'
                                         }}">
                                             {{ candidate.experience_years }} year(s) of experience
                                         </span>
@@ -47,7 +62,8 @@
                                         <span title="The Job requires {{ thread.job.get_english_level_display() }} level of English"
                                             class="badge bg-{{
                                              'success' if c_eng >= j_eng else
-                                             'warning' if c_eng >= j_eng - 1 else 'danger'
+                                             'warning' if c_eng >= j_eng - 1 else
+                                             'danger'
                                         }}">
 									        {{ candidate.english_level }}
                                         </span>

@@ -9,6 +9,22 @@ from .models import Recruiter, MessageThread, JobPosting, EnglishLevel
 # Hardcode for logged in as recruiter
 RECRUITER_ID = 125528
 
+def _calc_tech_similarity (candidate, job):
+    sim = 0
+    if candidate.primary_keyword == job.primary_keyword:
+        sim += 0.9
+
+    if candidate.secondary_keyword == job.primary_keyword:
+        sim += 0.5
+
+    if candidate.primary_keyword == job.secondary_keyword:
+        sim += 0.25
+
+    if candidate.secondary_keyword == job.secondary_keyword:
+        sim += 0.1
+
+    return min(sim, 1)
+
 def _apply_advanced_sorting (threads, weights):
     window = {
        'partition_by': [F('job_id')],
@@ -53,13 +69,15 @@ def _apply_advanced_sorting (threads, weights):
         # TODO: Skills measuring is NIY
         thr.scores['skills'] = 0
 
+        thr.scores['tech_sim'] = _calc_tech_similarity(thr.candidate, thr.job)
+
         thr.scores['total'] = (
-              thr.scores['experience'] / len(thr.scores) * weights['experience']
-            + thr.scores['skills']     / len(thr.scores) * weights['skills']
-            + thr.scores['english']    / len(thr.scores) * weights['english']
+              thr.scores['experience'] * weights['experience'] * thr.scores['tech_sim']
+            + thr.scores['skills']     * weights['skills']
+            + thr.scores['english']    * weights['english']
 
             # the higher the salary the higher should be the penalty
-            - thr.scores['salary']     / len(thr.scores) * weights['salary']
+            - thr.scores['salary']     * weights['salary']
         )
 
     # from the highest score to the lowest
