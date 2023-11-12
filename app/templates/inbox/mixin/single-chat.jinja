@@ -33,6 +33,8 @@
                                 </span>
                             </div>
 
+                            <div style="border-bottom: 1px solid #eee; margin: 5px"></div>
+
                             <div>
                                 {% for sk in thread.job.extracted_skills %}
                                     {% if sk in thread.matching_skills %}
@@ -54,6 +56,8 @@
                                     {% endif %}
                                 {% endfor %}
                             </div>
+
+                            <div style="border-bottom: 1px solid #eee; margin: 5px"></div>
 
                             {% with c_sal = candidate.salary_min,
                                     j_sal = thread.job.salary_max,
@@ -108,7 +112,9 @@
                             {% endwith %}
 						</small>
 
-                        {% if thread.scores %}
+                        <div style="border-bottom: 1px solid #eee; margin: 5px"></div>
+
+                        {% if thread.scores and thread.scores['total'] %}
                             <small class="badge bg-dark">
                                 Weighted Score:
                                 {{ '%.2f'|format(thread.scores['total']) }}

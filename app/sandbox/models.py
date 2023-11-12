@@ -118,7 +118,13 @@ class Candidate(models.Model):
                 if m and m.group(1) and len(m.group(1)) > 2:
                     unfold_list.add( m.group(1) )
 
-        self._skills_cache_list = sorted(unfold_list)
+        if self.primary_keyword:
+            unfold_list.add( self.primary_keyword.casefold() )
+
+        if self.secondary_keyword:
+            unfold_list.add( self.secondary_keyword.casefold() )
+
+        self._skills_cache_list = unfold_list
         return self._skills_cache_list
 
     location = models.CharField(max_length=255, blank=True, default="", null=True)

@@ -35,7 +35,7 @@ def _calc_tech_similarity (candidate, job):
     if candidate.primary_keyword == job.secondary_keyword:
         sim += 0.25
 
-    if candidate.secondary_keyword == job.secondary_keyword:
+    if not job.secondary_keyword or candidate.secondary_keyword == job.secondary_keyword:
         sim += 0.1
 
     return min(sim, 1)
@@ -44,9 +44,9 @@ def _extract_skills_from_text (text, skills, obj):
     batch_search = '%s' % '|'.join([ re.escape(s) for s in skills ])
     matches = set(re.findall( r'\b(%s)\b' % batch_search,  text.casefold() ))
     return matches - set([
-        # remove duplicates of primary & secondary keywords
-        (obj.primary_keyword or '').casefold(),
-        (obj.secondary_keyword or '').casefold(),
+        # # remove duplicates of primary & secondary keywords
+        # (obj.primary_keyword or '').casefold(),
+        # (obj.secondary_keyword or '').casefold(),
         *GENERIC_SKILLS,
     ])
 
@@ -135,11 +135,15 @@ def _apply_advanced_sorting (threads, weights):
         thr.cand_extracted_skills = _extract_skills_from_candidate_desc(
             thr.candidate, thr.job.extracted_skills)
 
+        combined_candidate_skills = (
+              set(thr.cand_extracted_skills)
+            | set(thr.candidate.skills_cache_list())
+        )
+
         # skills match must be computed in this loop but analyzed in the next
         thr.matching_skills = _find_skills_match(
             thr.job.extracted_skills,
-              set(thr.cand_extracted_skills)
-            | set(thr.candidate.skills_cache_list())
+            combined_candidate_skills,
         )
 
         best_skillset = max(best_skillset, len(thr.matching_skills))
@@ -191,7 +195,10 @@ def inbox(req):
     threads = threads.select_related('candidate', 'job')
 
     if sorting is C.inbox.sorting.recent:
-        pass
+        for thr in threads:
+            thr.scores = {
+                'tech_sim': _calc_tech_similarity(thr.candidate, thr.job),
+            }
     elif sorting is C.inbox.sorting.advanced:
         # The main deal
         wt_salary     = get_params.get(C.inbox.http.param.ast.SALARY)
