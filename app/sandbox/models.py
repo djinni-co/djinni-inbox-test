@@ -3,10 +3,13 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 import pycountry
 
+from .scoring_algorithm.scoring import ScoringCalculator
+
 COUNTRY_CHOICES: list[tuple[str, str]] = sorted(
     ((c.alpha_3, c.name) for c in pycountry.countries),
     key=lambda c: c[1],
 )
+
 
 class LegacyUACity(models.TextChoices):
     """used in jobs/candidate"""
@@ -27,6 +30,7 @@ class LegacyUACity(models.TextChoices):
     CHERNIVTSI = "Чернівці", _("Chernivtsi")
     UZHHOROD = "Ужгород", _("Uzhhorod")
 
+
 class EnglishLevel(models.TextChoices):
     NONE = ("no_english", "No English")
     BASIC = ("basic", "Beginner/Elementary")
@@ -34,6 +38,7 @@ class EnglishLevel(models.TextChoices):
     INTERMEDIATE = ("intermediate", "Intermediate")
     UPPER = ("upper", "Upper-Intermediate")
     FLUENT = ("fluent", "Advanced/Fluent")
+
 
 class Candidate(models.Model):
     USERTYPE = "candidate"
@@ -135,7 +140,7 @@ class JobPosting(models.Model):
         NO_RELOCATE = "no_relocate", _("No relocation")
         CANDIDATE_PAID = "candidate_paid", _("Covered by candidate")
         COMPANY_PAID = "company_paid", _("Covered by company")
-    
+
     class AcceptRegion(models.TextChoices):
         EUROPE = "europe", _("Ukraine + Europe")
         EUROPE_ONLY = "europe_only", _("Only Europe")
@@ -187,6 +192,7 @@ class JobPosting(models.Model):
     published = models.DateTimeField(blank=True, null=True, db_index=True)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
 
+
 class Action(str, enum.Enum):
     MESSAGE = ''
 
@@ -209,6 +215,7 @@ class Action(models.TextChoices):
     POKE = "poke"
     SHADOW_POKE = "shadowpoke"
 
+
 class Bucket(str, enum.Enum):
     """Bucket is the current state of the message thread"""
     ARCHIVE = 'archive'
@@ -217,6 +224,7 @@ class Bucket(str, enum.Enum):
     POKES = 'pokes'
     SHORTLIST = 'shortlist'  # TODO: looks deprecated by recruiter_favorite & candidate_favorite
     UNREAD = 'unread'  # TODO: for recruiter we use INBOX bucket with `last_seen_recruiter`
+
 
 class Message(models.Model):
     class Sender(models.TextChoices):
@@ -279,6 +287,29 @@ class MessageThread(models.Model):
     last_seen_recruiter = models.DateTimeField(null=True)
     last_seen_candidate = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
+
+
+    score = models.FloatField(blank=True, null=True) # add scoring field
+
+    def calculate_score(self):
+        """
+               Calculates a matching score for the current candidate and job opportunity.
+
+               Returns:
+                   float: The matching score indicating compatibility.
+        """
+        score = ScoringCalculator(candidate=self.candidate, job=self.job).calculate_score()
+        return score
+
+    def save(self, *args, **kwargs):
+        """
+        The save method overrides the default Django model save behavior,
+        ensuring that if the score attribute is not set, it calculates and
+         assigns the matching score before saving the MessageThread instance to the database.
+        """
+        if not self.score:
+            self.score = self.calculate_score()
+        super(MessageThread, self).save(*args, **kwargs)
 
     @property
     def last_message(self):

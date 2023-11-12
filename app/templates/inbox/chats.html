@@ -1,9 +1,11 @@
 {% extends "base.html" %}
-
+<!-- Import the 'render_rating_stars' macro from the 'macros.html' file -->
+{% from 'macros.html' import render_rating_stars %}
 {% block content %}
 	<div class="container pt-3">
 		<h1 class="mb-3">Inbox</h1>
-
+		<a href="?sort=score" class="btn btn-outline-secondary">Sorted by Score</a>
+        <a href="?sort=created" class="btn btn-outline-secondary">Sorted by Create</a>
 		{% for thread in threads %}
 			{% set last_message = thread.last_message %}
 			{% set candidate = thread.candidate %}
@@ -34,6 +36,8 @@
 											<div>
 												{{ candidate.english_level }}, {{ candidate.country_code }}{% if candidate.location %}, {{ candidate.location }}{% endif %}
 											</div>
+											<!-- Render the star ratings using the 'render_rating_stars' macro -->
+											{{ render_rating_stars(thread.score) }}
 										</div>
 									</small>
 								</div>
@@ -48,7 +52,7 @@
 								{% if last_message.body %}
 									{{ last_message.body|truncate(100) }}
 								{% endif %}
-								
+
 							</div>
 							<a href="{{ url('inbox_thread', thread.id) }}"><small>Open thread</small></a>
 						</div>

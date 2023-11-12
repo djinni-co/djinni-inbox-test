@@ -9,10 +9,23 @@ from .models import Recruiter, MessageThread
 RECRUITER_ID = 125528
 
 def inbox(request):
-    recruiter = Recruiter.objects.get(id = RECRUITER_ID)
-    threads = MessageThread.objects.filter(recruiter = recruiter).select_related('candidate', 'job')
+    """
+       Retrieves and displays recruiter's inbox with sorted message threads.
 
-    _context = { 'title': "Djinni - Inbox", 'recruiter': recruiter, 'threads': threads }
+       :param request: HTTP request object.
+       :return: Rendered inbox template.
+    """
+    recruiter = Recruiter.objects.get(id=RECRUITER_ID)
+    threads = MessageThread.objects.filter(recruiter=recruiter).select_related('candidate', 'job')
+    sort_by = request.GET.get('sort', 'default')
+
+    if sort_by == 'score':
+        threads = threads.order_by('-score')
+    elif sort_by == 'created':
+        threads = threads.order_by('-created')
+
+
+    _context = {'title': "Djinni - Inbox", 'recruiter': recruiter, 'threads': threads}
 
     return render(request, 'inbox/chats.html', _context)
 

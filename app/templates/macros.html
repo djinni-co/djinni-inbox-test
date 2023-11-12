@@ -1,0 +1,26 @@
+<!-- macros.html -->
+
+{% macro render_rating_stars(score) %}
+    {#
+        Renders a star rating based on the provided score.
+        The score is expected to be a floating-point number between 0 and 5.
+        Each star is represented by a Unicode star character.
+        Half stars are represented by a half star character.
+    #}
+    <div class="rating-star">
+        <span title="{{ score }}/5">
+            {% for i in range(1, 6) %}
+                {% set is_half_star = score|float >= i - 0.5 and score|float < i %}
+                {% set is_full_star = score|float >= i %}
+                {% if is_full_star %}
+                    <span class="star">&#9733;</span>
+                {% elif is_half_star %}
+                    <span class="star">&#9733;&#189;</span>
+                {% else %}
+                    <span class="star">&#9734;</span>
+                {% endif %}
+            {% endfor %}
+        </span>
+        <span><strong>({{ score }}/5)</strong></span>
+    </div>
+{% endmacro %}

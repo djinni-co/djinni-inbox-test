@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-
+<!-- Import the 'render_rating_stars' macro from the 'macros.html' file -->
+{% from 'macros.html' import render_rating_stars %}
 {% block content %}
 	<div class="container pt-5 pb-5">
 		<div class="row">
@@ -8,8 +9,12 @@
 					<div class="card-header">
 						{% if thread.is_anonymous %}
 							{{ candidate.position }}
+							<!-- Render the star ratings using the 'render_rating_stars' macro -->
+							{{ render_rating_stars(thread.score) }}
 						{% else %}
 							{{ candidate.name }}
+							<!-- Render the star ratings using the 'render_rating_stars' macro -->
+							{{ render_rating_stars(thread.score) }}
 						{% endif %}
 					</div>
 					<div class="card-body">
