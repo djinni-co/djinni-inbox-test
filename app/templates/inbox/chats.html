@@ -4,16 +4,29 @@
 	<div class="container pt-3">
 		<h1 class="mb-3">Inbox</h1>
 
+		<div>
+			{% for metric in match_metrics[threads[0].id].keys() %}
+				<label for="slider-{{ metric }}">{{ metric }}:</label>
+				<input type="range" id="slider-{{ metric|lower }}" min="0" max="10" value="1" step="0.5" onchange="updateScores()">
+			{% endfor %}
+		</div>
+
+		<div class="threads-container">
 		{% for thread in threads %}
 			{% set last_message = thread.last_message %}
 			{% set candidate = thread.candidate %}
 
-			<div id="thread-{{ thread.id }}" class="card mb-4">
+			<div id="thread-{{ thread.id }}" class="thread card mb-4"
+				{% for key, value in match_metrics[thread.id].items() %}
+					data-{{ key | lower }}="{{ value }}"
+				{% endfor %}>
 				<div class="card-body">
 					<div class="row">
 						<div class="col-sm-3">
 							<div class="row">
 								<div class="col-auto">
+								<div>Score: <span class="metrics">{{ match_metrics_score[thread.id]|floatformat }}</span></div>
+
 								{% if thread.is_anonymous or not thread.candidate.picture_url %}
 										<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover" src="https://p.djinni.co/static/i/default-userpic@2x.png" alt="">
 								{% else %}
@@ -61,5 +74,46 @@
 				</div>
 			</div>
 		{% endfor %}
+		</div>
 	</div>
+
+<script type="text/javascript">
+	function updateScores() {
+		let sliders = document.querySelectorAll('input[type=range]');
+		let sliderValues = {};
+		sliders.forEach(slider => {
+			sliderValues[slider.id.replace('slider-', '')] = parseFloat(slider.value);
+		});
+
+		sortThreads(sliderValues);
+	}
+
+	function sortThreads(sliderValues) {
+		let threads = document.querySelectorAll('.thread');
+		let threadScores = [];
+
+		// Calculate scores for each thread
+		threads.forEach(thread => {
+			let score = 0;
+			for (const metric in sliderValues) {
+				let metricValue = parseFloat(thread.dataset[metric]);
+				score += metricValue * sliderValues[metric];
+			}
+			score = Math.round(score * 100) / 100
+			thread.querySelector('.metrics').innerHTML = score;
+			threadScores.push({thread: thread, score: score});
+		});
+
+		// Sort the array of threads based on the score
+		threadScores.sort((a, b) => b.score - a.score);
+
+		let container = document.querySelector('.threads-container');
+
+		// Reorder the threads in the DOM
+		threadScores.forEach(item => {
+			container.appendChild(item.thread);
+		});
+	}
+</script>
+
 {% endblock content %}
