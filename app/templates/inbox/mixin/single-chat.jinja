@@ -18,18 +18,42 @@
 								<div>{{ candidate.name }}</div>
 							{% endif %}
 
-                            <span title="The Job's primary (secondary) technology/domain is {{ thread.job.primary_keyword }} ({{ thread.job.secondary_keyword }})"
-                                class="badge bg-{{
-                                    'success' if thread.scores['tech_sim'] >= 0.75 else
-                                    'warning' if thread.scores['tech_sim'] >= 0.5 else
-                                    'danger'
-                                }}">
+                            <div>
+                                <span title="The Job's primary (secondary) technology/domain is {{ thread.job.primary_keyword }} ({{ thread.job.secondary_keyword }})"
+                                    class="badge bg-{{
+                                        'success' if thread.scores['tech_sim'] >= 0.75 else
+                                        'warning' if thread.scores['tech_sim'] >= 0.5 else
+                                        'danger'
+                                    }}">
 
-                                {{ candidate.primary_keyword }}
-                                {% if candidate.secondary_keyword %}
-                                    + {{ candidate.secondary_keyword }}
-                                {% endif %}
-                            </span>
+                                    {{ candidate.primary_keyword }}
+                                    {% if candidate.secondary_keyword %}
+                                        + {{ candidate.secondary_keyword }}
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <div>
+                                {% for sk in thread.job.extracted_skills %}
+                                    {% if sk in thread.matching_skills %}
+                                        <span title="This skill was found in the Candidates description"
+                                            class="badge bg-success">
+                                        
+                                            {{ sk|title }}
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% for sk in thread.job.extracted_skills %}
+                                    {% if sk not in thread.matching_skills %}
+                                        <span title="This skill was not found in the Candidates description"
+                                            class="badge bg-danger">
+                                        
+                                            {{ sk|title }}
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
 
                             {% with c_sal = candidate.salary_min,
                                     j_sal = thread.job.salary_max,
@@ -65,7 +89,7 @@
                                              'warning' if c_eng >= j_eng - 1 else
                                              'danger'
                                         }}">
-									        {{ candidate.english_level }}
+									        {{ candidate.get_english_level_display() }}
                                         </span>
 
                                         <span class="badge bg-secondary">

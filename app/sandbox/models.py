@@ -1,4 +1,4 @@
-import enum
+import enum, re
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 import pycountry
@@ -82,6 +82,45 @@ class Candidate(models.Model):
         return EnglishLevel(self.english_level)
 
     skills_cache = models.TextField(blank=True, default="")
+
+    def skills_cache_list (self):
+        if getattr(self, '_skills_cache_list', None):
+            return self._skills_cache_list
+
+        if not self.skills_cache:
+            return []
+
+        unfold_list = set()
+        for skill_or_batch in self.skills_cache.replace('\r', '').split('\n'):
+            if not skill_or_batch:
+                continue
+
+            # some "skills" are batches of skills separated with a "/" or
+            # "\". Another potential "separator" is "&". Normalize
+            # back-slashes/etc to forward ones first before processing
+
+            # e.g: SQL \ MongoDB \ Redis GitHub / GitLab / Git Jira &
+            # Confluence Jenkins CI/CD
+            skill_or_batch = skill_or_batch.replace('|', '/')
+            skill_or_batch = skill_or_batch.replace('&', '/')
+            skill_or_batch = skill_or_batch.replace('\\', '/')
+
+            if len(skill_or_batch) > 2:
+                unfold_list.add(skill_or_batch.casefold())
+            else:
+                continue
+
+            for sk in skill_or_batch.split('/'):
+
+                # data has SASS, LESS etc in lowercase, thus use casefold()
+                # for further matching with Job texts
+                m = re.match( r'^\s*(.*)\s*$', sk.casefold() )
+                if m and m.group(1) and len(m.group(1)) > 2:
+                    unfold_list.add( m.group(1) )
+
+        self._skills_cache_list = sorted(unfold_list)
+        return self._skills_cache_list
+
     location = models.CharField(max_length=255, blank=True, default="", null=True)
     country_code = models.CharField(
         max_length=3,

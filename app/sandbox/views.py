@@ -1,3 +1,5 @@
+import re
+
 from django.http import HttpResponse, HttpResponseRedirect, QueryDict
 from django.db.models import Count, Q, Avg, F, Max, Min, Window
 from django.shortcuts import render, reverse, get_object_or_404
@@ -8,6 +10,19 @@ from .models import Recruiter, MessageThread, JobPosting, EnglishLevel
 
 # Hardcode for logged in as recruiter
 RECRUITER_ID = 125528
+
+GENERIC_SKILLS = [
+    'english',
+    'responsibility',
+    'responsible',
+    'make',
+    'architecture',
+    'website',
+    'communication',
+    'next',
+    'web',
+    'system',
+]
 
 def _calc_tech_similarity (candidate, job):
     sim = 0
@@ -24,6 +39,39 @@ def _calc_tech_similarity (candidate, job):
         sim += 0.1
 
     return min(sim, 1)
+
+def _extract_skills_from_job_desc (job, all_skills):
+    batch_search = '%s' % '|'.join([ re.escape(s) for s in all_skills ])
+
+    matches = set(re.findall(
+        r'\b(%s)\b' % batch_search,
+        job.long_description.casefold()
+    ))
+
+    position_dups = set([ sk for sk in matches if sk in job.position ])
+
+    return matches - set([
+        # remove duplicates of primary & secondary keywords
+        (job.primary_keyword or '').casefold(),
+        (job.secondary_keyword or '').casefold(),
+        *GENERIC_SKILLS,
+    ]) - position_dups
+
+def _find_skills_match (job, candidate):
+    cand_skills = candidate.skills_cache_list()
+    return set(job.extracted_skills).intersection(set(cand_skills))
+
+def _find_all_unique_candidate_skills (candidates_or_threads):
+    all_skills = set()
+
+    candidates = candidates_or_threads
+    if getattr(candidates_or_threads[0], 'candidate', None):
+        candidates = set([ thr.candidate for thr in candidates_or_threads ])
+
+    for c in candidates:
+        all_skills.update( c.skills_cache_list() )
+
+    return all_skills
 
 def _apply_advanced_sorting (threads, weights):
     window = {
@@ -48,6 +96,14 @@ def _apply_advanced_sorting (threads, weights):
         ),
     )
 
+    all_skills = _find_all_unique_candidate_skills(thrs_ext)
+
+    # FIXME: this value must be computed based on priority of skills for the
+    # Job which itself must be extracted from the Job somehow (hint:
+    # presumably recruiter specifies more important things top-to-bottom
+    # left-to-right)
+    best_skillset = 0
+
     for thr in thrs_ext:
         thr.scores = {}
 
@@ -66,10 +122,24 @@ def _apply_advanced_sorting (threads, weights):
             EnglishLevel(thr.candidate.english_level)
         ) / 5
 
-        # TODO: Skills measuring is NIY
-        thr.scores['skills'] = 0
+        # TODO: this list should be cached into the DB (don't forget to
+        # invalidate the cache properly!)
+        if not getattr(thr.job, 'extracted_skills', None):
+            thr.job.extracted_skills = _extract_skills_from_job_desc(
+                thr.job, all_skills)
+
+        # skills match must be computed in this loop but analyzed in the next
+        thr.matching_skills = _find_skills_match(thr.job, thr.candidate)
+        best_skillset = max(best_skillset, len(thr.matching_skills))
 
         thr.scores['tech_sim'] = _calc_tech_similarity(thr.candidate, thr.job)
+
+    # since the number of skills is varying, their analysis must be done after
+    # all of the info (how many skills of each Candidate matches with the Job)
+    # is available
+    for thr in thrs_ext:
+        thr.scores['skills'] = len(thr.matching_skills) / best_skillset
+        # thr.scores['skills'] = len(thr.matching_skills) / len(thr.job.extracted_skills)
 
         thr.scores['total'] = (
               thr.scores['experience'] * weights['experience'] * thr.scores['tech_sim']
