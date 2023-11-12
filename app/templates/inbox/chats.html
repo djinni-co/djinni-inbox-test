@@ -4,62 +4,89 @@
 	<div class="container pt-3">
 		<h1 class="mb-3">Inbox</h1>
 
-		{% for thread in threads %}
-			{% set last_message = thread.last_message %}
-			{% set candidate = thread.candidate %}
+        <form method="get" action="">
+            <table class="mb-3 table">
+                <colgroup>
+                    <col span="1" style="min-width: 15em">
+                    <col span="1" style="width: 100%">
+                    <col span="1" style="width: min-content">
+                </colgroup>
 
-			<div id="thread-{{ thread.id }}" class="card mb-4">
-				<div class="card-body">
-					<div class="row">
-						<div class="col-sm-3">
-							<div class="row">
-								<div class="col-auto">
-								{% if thread.is_anonymous or not thread.candidate.picture_url %}
-										<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover" src="https://p.djinni.co/static/i/default-userpic@2x.png" alt="">
-								{% else %}
-										<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover" src="{{ thread.candidate.picture_url }}" alt="">
-								{% endif %}
-								</div>
-								<div class="col">
-									<small>
-										{% if thread.is_anonymous %}
-											<div>{{ candidate.position }}</div>
-										{% else %}
-											<div>{{ candidate.name }}</div>
-										{% endif %}
-										<div class="text-secondary">
-											<div>
-												${{ candidate.salary_min }}, {{ candidate.experience_years }} years of experience,
-											</div>
-											<div>
-												{{ candidate.english_level }}, {{ candidate.country_code }}{% if candidate.location %}, {{ candidate.location }}{% endif %}
-											</div>
-										</div>
-									</small>
-								</div>
-							</div>
-						</div>
-						<div class="col-sm">
-							<header><strong>{{ thread.job.position }}</strong></header>
-							<div>
-								{% if last_message.action in ['apply', 'accept'] %}
-									<div>Candidate opened contacts</div>
-								{% endif %}
-								{% if last_message.body %}
-									{{ last_message.body|truncate(100) }}
-								{% endif %}
-								
-							</div>
-							<a href="{{ url('inbox_thread', thread.id) }}"><small>Open thread</small></a>
-						</div>
-						<div class="col-sm-auto">
-							<small class="text-secondary">
-								{{ last_message.created|date('d.m.Y') }}
-							</small>
-						</div>
-					</div>
-				</div>
-			</div>
-		{% endfor %}
+                <tbody>
+                    <tr>
+                        <td>
+                            <select name="{{ const.http.param.JOB_FILTER }}"
+                                class="form-select form-select-sm"
+                                onchange="this.form.submit()"
+                                style="max-width: 20rem; display: inline">
+
+                                <option value="" {{ '' if current_job else 'selected' }}>
+                                    Show All Jobs
+                                </option>
+
+                                {% for j in jobs %}
+                                    <option value="{{ j.id }}"
+                                        {{ 'selected' if (current_job and current_job.id == j.id) else '' }}>
+
+                                        {{ '#%s: %s' % (j.id, j.position) }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+
+                        <td>
+                            <input type="search" placeholder="Search in Messages (NIY)"
+                                style="width: 100%">
+                        </td>
+
+                        <td>
+                            <form action="" method="get" style="display: inline">
+                                <select name="{{ const.http.param.SORTING }}"
+                                    onchange="this.form.submit()"
+                                    class="form-select form-select-sm"
+                                    style="float: right; width: min-content">
+
+                                    {% for so in sorting_options %}
+                                        <option value="{{ so.id }}"
+                                            {{ 'selected' if so == current_sorting }}>
+
+                                            {{ so.text }}
+                                        </option>
+                                    {% endfor %}
+
+                                    <!-- <script>
+                                    /* the last item MUST be "Advanced Sorting"
+                                    and it has special meaning */
+                                    el = document.currentScript.previousElementSibling;
+                                    $(el).on('click', function (ev) {
+                                    ev.target.classList.toggle('active');
+                                    $('#{{ const.html.id.ADVANCED_SORTING_TOOL }}').toggle('hidden');
+                                    });
+                                    </script> -->
+                                </select>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            
+
+            <div id="{{ const.html.id.ADVANCED_SORTING_TOOL }}"
+                style="display: {{ 'block' if current_sorting == const.sorting.advanced else 'none' }}"
+                class="mb-3" style="display: block">
+
+                {% include 'inbox/mixin/advanced-scoring-tool.jinja' %}
+            </div>
+        </form>
+
+        <div id="{{ const.html.id.CHAT_LIST }}">
+            {% include 'inbox/mixin/chat-list.jinja' %}
+        </div>
+
+        <span id="spinner" class="htmx-indicator">
+            <img src="{{ static('img/spinner-mod.gif') }}"
+                style="height: 2em" />
+        </span>
 	</div>
 {% endblock content %}

@@ -1,0 +1,94 @@
+<h4>Advanced Sorting Tool</h4>
+<p class="text-secondary">This feature allows you to see more relevant Candidates easier. Just choose how to treat different aspects of their profiles or how the profiles match the Job description by specifying weights for each parameter.</p>
+
+<!-- AST- prefix stands for Advanced Sorting Tool -->
+<table class="table table-hover"
+    style="width: 100%; vertical-align: middle">
+
+    <colgroup>
+        <col span="1" style="width: 50%">
+        <col span="1" style="width: 50%">
+    </colgroup>
+
+    <tbody>
+        <tr>
+            <td class="p-4">
+                <label for="{{ const.http.param.ast.SALARY }}">
+                    Salary importance
+                </label>
+
+                <div class="text-secondary">
+                    (Higher value means: The lower the salary the better)
+                </div>
+
+                <input name="{{ const.http.param.ast.SALARY }}"
+                    type="range" min="1" max="100"
+                    value="{{ ast_salary or 25 }}"
+                    style="width: 100%">
+            </td>
+
+            <td class="p-4">
+                <label for="{{ const.http.param.ast.EXPERIENCE }}">
+                    Experience importance
+                </label>
+
+                <div class="text-secondary">
+                    (Higher value means: The more experience the better)
+                </div>
+
+                <input name="{{ const.http.param.ast.EXPERIENCE }}"
+                    type="range" min="1" max="100"
+                    value="{{ ast_experience or 50 }}"
+                    style="width: 100%">
+            </td>
+        </tr>
+
+        <tr>
+            <td class="p-4">
+                <label for="{{ const.http.param.ast.SKILLS }}">
+                    Skills importance
+                </label>
+
+                <div class="text-secondary">
+                    (Higher value means: The more matching skills in
+                    Candidate's profile with the Job the better)
+                </div>
+
+                <input name="{{ const.http.param.ast.SKILLS }}"
+                    type="range" min="1" max="100"
+                    value="{{ ast_skills or 50 }}"
+                    style="width: 100%">
+            </td>
+
+            <td class="p-4">
+                <label for="{{ const.http.param.ast.ENGLISH }}">
+                    English level importance
+                </label>
+
+                <div class="text-secondary text-sm">
+                    (Higher value means: The higher the level of English the better)
+                </div>
+
+                <input name="{{ const.http.param.ast.ENGLISH }}"
+                    type="range" min="1" max="100"
+                    value="{{ ast_english or 50 }}"
+                    style="width: 100%">
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="100%">
+                <!-- <div class style="float: right"> -->
+                <!-- <input id="auto-apply-checkbox" type="checkbox"
+                class="btn btn-sm btn-primary" checked>
+                <span>Auto-Apply</span> -->
+
+                <button type="submit" class="btn btn-sm btn-primary"
+                    style="width: 100%">
+                    Apply
+                </button>
+                <!-- </div> -->
+            </td>
+        </tr>
+    </tbody>
+</table>

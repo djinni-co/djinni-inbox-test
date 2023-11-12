@@ -1,0 +1,166 @@
+<div id="thread-{{ thread.id }}" class="card mb-4">
+	<div class="card-body">
+		<div class="row">
+			<div class="col-sm-3">
+				<div class="row">
+					<div class="col-auto">
+						{% if thread.is_anonymous or not thread.candidate.picture_url %}
+							<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover" src="https://p.djinni.co/static/i/default-userpic@2x.png" alt="">
+						{% else %}
+							<img class="rounded-circle" width="30px" height="30px" style="object-fit: cover" src="{{ thread.candidate.picture_url }}" alt="">
+						{% endif %}
+					</div>
+					<div class="col">
+                        <small>
+							{% if thread.is_anonymous %}
+								<div>{{ candidate.position }}</div>
+							{% else %}
+								<div>{{ candidate.name }}</div>
+							{% endif %}
+
+                            <div>
+                                <span title="The Job's primary (secondary) technology/domain is {{ thread.job.primary_keyword }} ({{ thread.job.secondary_keyword }})"
+                                    class="badge bg-{{
+                                        'success' if thread.scores['tech_sim'] >= 0.75 else
+                                        'warning' if thread.scores['tech_sim'] >= 0.5 else
+                                        'danger'
+                                    }}">
+
+                                    {{ candidate.primary_keyword }}
+                                    {% if candidate.secondary_keyword %}
+                                        + {{ candidate.secondary_keyword }}
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <div style="border-bottom: 1px solid #eee; margin: 5px"></div>
+
+                            <div>
+                                {% for sk in thread.job.extracted_skills %}
+                                    {% if sk in thread.matching_skills %}
+                                        <span title="This skill was found in the Candidates description"
+                                            class="badge bg-success">
+                                        
+                                            {{ sk|title }}
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% for sk in thread.job.extracted_skills %}
+                                    {% if sk not in thread.matching_skills %}
+                                        <span title="This skill was not found in the Candidates description"
+                                            class="badge bg-danger">
+                                        
+                                            {{ sk|title }}
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            <div style="border-bottom: 1px solid #eee; margin: 5px"></div>
+
+                            {% with c_sal = candidate.salary_min,
+                                    j_sal = thread.job.salary_max,
+                                    c_exp = candidate.experience_years,
+                                    j_exp = thread.job.exp_years_int(),
+                                    c_eng = int(candidate.english_level_obj()),
+                                    j_eng = int(thread.job.english_level_obj())
+                            %}
+							    <div class="text-secondary">
+								    <div>
+									    <span title="The Job caps the salary at ${{ j_sal }}"
+                                            class="badge bg-{{
+                                             'success' if c_sal <= j_sal else 
+                                             'warning' if c_sal <= j_sal + max(0.3 * j_sal, 500) else
+                                             'danger'
+                                        }}">
+                                            ${{ candidate.salary_min }}
+                                        </span>
+
+                                        <span title="The Job requires {{ j_exp }} year(s) of experience"
+                                            class="badge bg-{{
+                                             'success' if c_exp >= j_exp else
+                                             'warning' if c_exp >= j_exp - max(0.3 * j_exp, 0.5) else
+                                             'danger'
+                                        }}">
+                                            {{ candidate.experience_years }} year(s) of experience
+                                        </span>
+								    </div>
+								    <div>
+                                        <span title="The Job requires {{ thread.job.get_english_level_display() }} level of English"
+                                            class="badge bg-{{
+                                             'success' if c_eng >= j_eng else
+                                             'warning' if c_eng >= j_eng - 1 else
+                                             'danger'
+                                        }}">
+									        {{ candidate.get_english_level_display() }}
+                                        </span>
+
+                                        <span class="badge bg-secondary">
+                                            {{ candidate.country_code }}
+                                        </span>
+
+                                        {% if candidate.location %}
+                                            {% for loc in candidate.location.split(',') %}
+                                                <span class="badge bg-secondary">
+                                                    {{ loc }}
+                                                </span>
+                                            {% endfor %}
+                                        {% endif %}
+								    </div>
+							    </div>
+                            {% endwith %}
+						</small>
+
+                        <div style="border-bottom: 1px solid #eee; margin: 5px"></div>
+
+                        {% if thread.scores and thread.scores['total'] %}
+                            <small class="badge bg-dark">
+                                Weighted Score:
+                                {{ '%.2f'|format(thread.scores['total']) }}
+                            </small>
+
+                            <small class="badge bg-dark">
+                                Experience:
+                                {{ '%.2f'|format(thread.scores['experience']) }}
+                            </small>
+
+                            <small class="badge bg-dark">
+                                Skills:
+                                {{ '%.2f'|format(thread.scores['skills']) }}
+                            </small>
+
+                            <small class="badge bg-dark">
+                                English:
+                                {{ '%.2f'|format(thread.scores['english']) }}
+                            </small>
+
+                            <small class="badge bg-dark">
+                                Salary:
+                                {{ '%.2f'|format(-thread.scores['salary']) }}
+                            </small>
+                        {% endif %}
+					</div>
+				</div>
+			</div>
+			<div class="col-sm">
+				<header><strong>{{ thread.job.position }}</strong></header>
+				<div>
+					{% if last_message.action in ['apply', 'accept'] %}
+						<div>Candidate opened contacts</div>
+					{% endif %}
+					{% if last_message.body %}
+						{{ last_message.body|truncate(100) }}
+					{% endif %}
+					
+				</div>
+				<a href="{{ url('sb:inbox_thread', thread.id) }}"><small>Open thread</small></a>
+			</div>
+			<div class="col-sm-auto">
+                <small class="text-secondary">
+					{{ last_message.created|date('d.m.Y') }}
+				</small>
+			</div>
+		</div>
+	</div>
+</div>
