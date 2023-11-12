@@ -1,74 +1,85 @@
 from functools import reduce
+from typing import Type
 
 from .enums import ScoreConfig
 from .scoring_settings import SCORING_FIELDS_CONFIG
 
 
-class ScoreAnalyzer:
-    __slots__ = ('scoring_settings', 'job', 'candidate')
+class ConfigParser:
+    def __init__(self, config: dict):
+        self.config = config
 
-    def __init__(self, job, candidate, scoring_settings):
+    @property
+    def get_base_score_settings(self):
+        return map(lambda value: self.config.get(value, 0), (
+            ScoreConfig.WEIGHT, ScoreConfig.ADD_EXTRA_WEIGHT, ScoreConfig.DEFAULT_MIN_WEIGHT,
+            ScoreConfig.EXTRA_WEIGHT_PER_UNIT, ScoreConfig.NAME))
+
+    @property
+    def get_scoring_data(self):
+        search_q_info, search_v_info, analyzer, validator = map(
+            lambda value: self.config.get(value, 0), (ScoreConfig.SEARCH_QUERY, ScoreConfig.SEARCH_VECTOR,
+                                                      ScoreConfig.MATCH_ANALYZER, ScoreConfig.VALIDATOR))
+        search_q_field, search_q_adapter = map(search_q_info.get, (ScoreConfig.FIELD, ScoreConfig.ADAPTER))
+        search_v_field, search_v_adapter = map(search_v_info.get, (ScoreConfig.FIELD, ScoreConfig.ADAPTER))
+
+        return search_q_field, search_q_adapter, search_v_field, search_v_adapter, analyzer, validator
+
+
+class ScoreAnalyzer:
+    __slots__ = ('scoring_settings', 'job', 'candidate', 'config_parser')
+
+    def __init__(self, job, candidate, scoring_settings, config_parser: Type[ConfigParser]):
         self.scoring_settings = scoring_settings
         self.job = job
         self.candidate = candidate
+        self.config_parser = config_parser
 
     @staticmethod
-    def get_search_data(search_field, obj):
+    def get_instance_data(search_field, obj):
         if isinstance(search_field, str):
             return getattr(obj, search_field)
         search_field_1, search_field_2 = search_field
         return getattr(obj, search_field_1), getattr(obj, search_field_2)
 
-    def calculate_score_for_single_unit(self, scoring_data):
-        search_query = scoring_data.get(ScoreConfig.SEARCH_QUERY)
-        search_vector = scoring_data.get(ScoreConfig.SEARCH_VECTOR)
-        match_analyzer = scoring_data.get(ScoreConfig.MATCH_ANALYZER)
-        validator = scoring_data.get(ScoreConfig.VALIDATOR)
+    def calculate_score_for_single_unit(self, config):
 
-        # Scoring settings #
-        weight = scoring_data.get(ScoreConfig.WEIGHT)
-        add_extra_weight = scoring_data.get(ScoreConfig.ADD_EXTRA_WEIGHT, False)
-        default_min_weight = scoring_data.get(ScoreConfig.DEFAULT_MIN_WEIGHT, 0)
-        extra_weight_per_unit = scoring_data.get(ScoreConfig.EXTRA_WEIGHT_PER_UNIT, 0)
-        name = scoring_data.get(ScoreConfig.NAME)
+        # scoring  settings
+        weight, add_extra_weight, default_min_weight, extra_weight_per_unit, name = (
+            self.config_parser(config).get_base_score_settings
+        )
+
+        search_q_field, search_q_adapter, search_v_field, search_v_adapter, analyzer, validator = (
+            self.config_parser(config).get_scoring_data
+        )
 
         if validator and not validator(candidate=self.candidate, job=self.job).is_valid():
             return {name: default_min_weight}
 
-        search_query_field = search_query.get(ScoreConfig.FIELD)
-        search_query_adapter = search_query.get(ScoreConfig.ADAPTER)
+        search_q_data = self.get_instance_data(search_q_field, self.job)
+        search_v_data = self.get_instance_data(search_v_field, self.candidate)
 
-        search_vector_field = search_vector.get(ScoreConfig.FIELD)
-        search_vector_adapter = search_vector.get(ScoreConfig.ADAPTER)
-
-        search_query_data = self.get_search_data(search_query_field, self.job)
-        search_vector_data = self.get_search_data(search_vector_field, self.candidate)
-
-        if not search_query_data or not search_vector_data:
+        if not search_q_data or not search_v_data:
             return {name: default_min_weight}
 
-        adapted_search_query_data = search_query_adapter(
-            search_query_data).convert() if search_query_adapter else search_query_data
-        adapted_search_vector_data = search_vector_adapter(
-            search_vector_data).convert() if search_vector_adapter else search_vector_data
+        adapted_search_q_data = search_q_adapter(
+            search_q_data).convert() if search_q_adapter else search_q_data
+        adapted_search_v_data = search_v_adapter(
+            search_v_data).convert() if search_v_adapter else search_v_data
 
-        score = match_analyzer(
-
+        score = analyzer(
             weight=weight,
             add_extra_weight=add_extra_weight,
             extra_weight_per_unit=extra_weight_per_unit,
             default_min_weight=default_min_weight
-
-        ).score(
-            search_query=adapted_search_query_data, search_vector=adapted_search_vector_data
-        )
+        ).score(search_query=adapted_search_q_data, search_vector=adapted_search_v_data)
         return {name: score}
 
     def calculate_score(self):
         """
             builds dict next structure {'english': <score>, 'salary': <score>}
         """
-        return reduce(lambda acc, item: {**acc, **self.calculate_score_for_single_unit(item)},
+        return reduce(lambda acc, config: {**acc, **self.calculate_score_for_single_unit(config)},
                       self.scoring_settings, {})
 
 
@@ -78,7 +89,7 @@ class ThreadScore:
     def score_thread(thread):
         job, candidate = thread.job, thread.candidate
         candidate_score = ScoreAnalyzer(
-            job=job, candidate=candidate, scoring_settings=SCORING_FIELDS_CONFIG
+            job=job, candidate=candidate, scoring_settings=SCORING_FIELDS_CONFIG, config_parser=ConfigParser
         ).calculate_score()
         thread.scores = candidate_score
         return thread
