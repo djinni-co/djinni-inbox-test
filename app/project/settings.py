@@ -91,7 +91,7 @@ DATABASES = {
         'NAME': os.getenv('POSTGRES_DB'),
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': 'db',  # Use the service name from docker-compose.yml
+        'HOST': os.getenv('POSTGRES_HOST', 'db'),  # Use the service name from docker-compose.yml
         'PORT': '5432',
     }
 }
@@ -138,3 +138,10 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SCORING_WEIGHTS = {
+    'language': os.getenv('LANG_WEIGHT', 0.25),
+    'salary': os.getenv('SALARY_WEIGHT', 0.25),
+    'experience': os.getenv('EXPERIENCE_WEIGHT', 0.25),
+    'skills': os.getenv('SKILLS_WEIGHT', 0.25)
+}
