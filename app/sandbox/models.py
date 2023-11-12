@@ -2,6 +2,14 @@ import enum
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 import pycountry
+from .scoring_settings import SCORING_FIELDS_CONFIG
+from .enums import ScoreConfig
+from django.db.models.expressions import RawSQL
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
+import pycountry
+
+from sandbox.scoring_mechanism import BulkThreadScore, ThreadScore
 
 COUNTRY_CHOICES: list[tuple[str, str]] = sorted(
     ((c.alpha_3, c.name) for c in pycountry.countries),
@@ -244,6 +252,14 @@ class Message(models.Model):
         ordering = ('created',)
 
 
+class MessageThreadQuerySet(models.QuerySet):
+
+    def get_scores(self, recruiter):
+        keys_to_sum = [item.get(ScoreConfig.NAME) for item in SCORING_FIELDS_CONFIG]
+        sql_query = ' + '.join("(scores->>'{}')::float".format(key) for key in keys_to_sum)
+        return self.filter(recruiter=recruiter).annotate(score=RawSQL(sql_query, ()))
+
+
 class MessageThread(models.Model):
     class MatchReason(models.TextChoices):
         MATCHED = "matched_v1"
@@ -279,6 +295,9 @@ class MessageThread(models.Model):
     last_seen_recruiter = models.DateTimeField(null=True)
     last_seen_candidate = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
+    scores = models.JSONField(null=True, blank=True)
+
+    objects = MessageThreadQuerySet.as_manager()
 
     @property
     def last_message(self):
@@ -287,3 +306,17 @@ class MessageThread(models.Model):
     class Meta:
         ordering = ("-last_updated",)
         unique_together = (Message.Sender.CANDIDATE, Message.Sender.RECRUITER)
+
+
+
+@receiver(post_save, sender=Candidate)
+def update_candidate_scores(sender, instance, **kwargs):
+    threads = instance.messagethread_set.all()
+    if not threads.exists():
+        return
+    BulkThreadScore().bulk_score(threads)
+
+
+@receiver(pre_save, sender=MessageThread)
+def add_thread_score(sender, instance, **kwargs):
+    instance.scores = ThreadScore().score_thread(instance)
