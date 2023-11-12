@@ -40,26 +40,30 @@ def _calc_tech_similarity (candidate, job):
 
     return min(sim, 1)
 
-def _extract_skills_from_job_desc (job, all_skills):
-    batch_search = '%s' % '|'.join([ re.escape(s) for s in all_skills ])
-
-    matches = set(re.findall(
-        r'\b(%s)\b' % batch_search,
-        job.long_description.casefold()
-    ))
-
-    position_dups = set([ sk for sk in matches if sk in job.position ])
-
+def _extract_skills_from_text (text, skills, obj):
+    batch_search = '%s' % '|'.join([ re.escape(s) for s in skills ])
+    matches = set(re.findall( r'\b(%s)\b' % batch_search,  text.casefold() ))
     return matches - set([
         # remove duplicates of primary & secondary keywords
-        (job.primary_keyword or '').casefold(),
-        (job.secondary_keyword or '').casefold(),
+        (obj.primary_keyword or '').casefold(),
+        (obj.secondary_keyword or '').casefold(),
         *GENERIC_SKILLS,
-    ]) - position_dups
+    ])
 
-def _find_skills_match (job, candidate):
-    cand_skills = candidate.skills_cache_list()
-    return set(job.extracted_skills).intersection(set(cand_skills))
+def _extract_skills_from_job_desc (job, skills):
+    return _extract_skills_from_text(
+        job.long_description, skills, job,
+    )
+
+def _extract_skills_from_candidate_desc (cand, skills):
+    return _extract_skills_from_text((
+          (cand.moreinfo or '') + ' '
+        + (cand.highlights or '') + ' '
+        + (cand.domain_zones or '')
+    ), skills, cand)
+
+def _find_skills_match (skill_set_1, skill_set_2):
+    return set(skill_set_1).intersection(set(skill_set_2))
 
 def _find_all_unique_candidate_skills (candidates_or_threads):
     all_skills = set()
@@ -128,8 +132,16 @@ def _apply_advanced_sorting (threads, weights):
             thr.job.extracted_skills = _extract_skills_from_job_desc(
                 thr.job, all_skills)
 
+        thr.cand_extracted_skills = _extract_skills_from_candidate_desc(
+            thr.candidate, thr.job.extracted_skills)
+
         # skills match must be computed in this loop but analyzed in the next
-        thr.matching_skills = _find_skills_match(thr.job, thr.candidate)
+        thr.matching_skills = _find_skills_match(
+            thr.job.extracted_skills,
+              set(thr.cand_extracted_skills)
+            | set(thr.candidate.skills_cache_list())
+        )
+
         best_skillset = max(best_skillset, len(thr.matching_skills))
 
         thr.scores['tech_sim'] = _calc_tech_similarity(thr.candidate, thr.job)
