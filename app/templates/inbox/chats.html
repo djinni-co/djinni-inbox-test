@@ -4,7 +4,7 @@
 	<div class="container pt-3">
 		<h1 class="mb-3">Inbox</h1>
 
-		{% for thread in threads %}
+		{% for thread in threads|sort_shuffle_threads_by_score_and_by_job_filter %}
 			{% set last_message = thread.last_message %}
 			{% set candidate = thread.candidate %}
 
